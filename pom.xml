@@ -216,7 +216,7 @@
       <repository>
         <id>github</id>
         <name>GitHub umjammer Apache Maven Packages</name>
-        <url>https://maven.pkg.github.com/umjammer/*</url>
+        <url>https://maven.pkg.github.com/umjammer/rococoa</url>
       </repository>
     </repositories>
 
