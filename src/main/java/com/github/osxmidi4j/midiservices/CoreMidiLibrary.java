@@ -52,42 +52,42 @@ public interface CoreMidiLibrary extends Library {
     CoreMidiLibrary INSTANCE = Native.load(
             CoreMidiLibrary.JNA_LIBRARY_NAME, CoreMidiLibrary.class);
 
-    int kMIDIInvalidClient = (int) -10830;
-    int kMIDIInvalidPort = (int) -10831;
-    int kMIDIWrongEndpointType = (int) -10832;
-    int kMIDINoConnection = (int) -10833;
-    int kMIDIUnknownEndpoint = (int) -10834;
-    int kMIDIUnknownProperty = (int) -10835;
-    int kMIDIWrongPropertyType = (int) -10836;
-    int kMIDINoCurrentSetup = (int) -10837;
-    int kMIDIMessageSendErr = (int) -10838;
-    int kMIDIServerStartErr = (int) -10839;
-    int kMIDISetupFormatErr = (int) -10840;
-    int kMIDIWrongThread = (int) -10841;
-    int kMIDIObjectNotFound = (int) -10842;
-    int kMIDIIDNotUnique = (int) -10843;
-    int kMIDIObjectType_Other = (int) -1;
-    int kMIDIObjectType_Device = (int) 0;
-    int kMIDIObjectType_Entity = (int) 1;
-    int kMIDIObjectType_Source = (int) 2;
-    int kMIDIObjectType_Destination = (int) 3;
-    int kMIDIObjectType_ExternalMask = (int) 16;
+    int kMIDIInvalidClient = -10830;
+    int kMIDIInvalidPort = -10831;
+    int kMIDIWrongEndpointType = -10832;
+    int kMIDINoConnection = -10833;
+    int kMIDIUnknownEndpoint = -10834;
+    int kMIDIUnknownProperty = -10835;
+    int kMIDIWrongPropertyType = -10836;
+    int kMIDINoCurrentSetup = -10837;
+    int kMIDIMessageSendErr = -10838;
+    int kMIDIServerStartErr = -10839;
+    int kMIDISetupFormatErr = -10840;
+    int kMIDIWrongThread = -10841;
+    int kMIDIObjectNotFound = -10842;
+    int kMIDIIDNotUnique = -10843;
+    int kMIDIObjectType_Other = -1;
+    int kMIDIObjectType_Device = 0;
+    int kMIDIObjectType_Entity = 1;
+    int kMIDIObjectType_Source = 2;
+    int kMIDIObjectType_Destination = 3;
+    int kMIDIObjectType_ExternalMask = 16;
     int kMIDIObjectType_ExternalDevice =
-            (int) ((int) CoreMidiLibrary.kMIDIObjectType_ExternalMask | (int) CoreMidiLibrary.kMIDIObjectType_Device);
+            CoreMidiLibrary.kMIDIObjectType_ExternalMask | CoreMidiLibrary.kMIDIObjectType_Device;
     int kMIDIObjectType_ExternalEntity =
-            (int) ((int) CoreMidiLibrary.kMIDIObjectType_ExternalMask | (int) CoreMidiLibrary.kMIDIObjectType_Entity);
+            CoreMidiLibrary.kMIDIObjectType_ExternalMask | CoreMidiLibrary.kMIDIObjectType_Entity;
     int kMIDIObjectType_ExternalSource =
-            (int) ((int) CoreMidiLibrary.kMIDIObjectType_ExternalMask | (int) CoreMidiLibrary.kMIDIObjectType_Source);
+            CoreMidiLibrary.kMIDIObjectType_ExternalMask | CoreMidiLibrary.kMIDIObjectType_Source;
     int kMIDIObjectType_ExternalDestination =
-            (int) ((int) CoreMidiLibrary.kMIDIObjectType_ExternalMask | (int) CoreMidiLibrary.kMIDIObjectType_Destination);
-    int kMIDIInvalidUniqueID = (int) 0;
-    int kMIDIMsgSetupChanged = (int) 1;
-    int kMIDIMsgObjectAdded = (int) 2;
-    int kMIDIMsgObjectRemoved = (int) 3;
-    int kMIDIMsgPropertyChanged = (int) 4;
-    int kMIDIMsgThruConnectionsChanged = (int) 5;
-    int kMIDIMsgSerialPortOwnerChanged = (int) 6;
-    int kMIDIMsgIOError = (int) 7;
+            CoreMidiLibrary.kMIDIObjectType_ExternalMask | CoreMidiLibrary.kMIDIObjectType_Destination;
+    int kMIDIInvalidUniqueID = 0;
+    int kMIDIMsgSetupChanged = 1;
+    int kMIDIMsgObjectAdded = 2;
+    int kMIDIMsgObjectRemoved = 3;
+    int kMIDIMsgPropertyChanged = 4;
+    int kMIDIMsgThruConnectionsChanged = 5;
+    int kMIDIMsgSerialPortOwnerChanged = 6;
+    int kMIDIMsgIOError = 7;
 
     public interface MIDINotifyProc extends Callback {
         void apply(MIDINotification message, Pointer refCon);
@@ -205,7 +205,7 @@ public interface CoreMidiLibrary extends Library {
     Pointer MIDIPacketListInit(Pointer pointer);
 
     Pointer MIDIPacketListAdd(Pointer pointer, NativeLong listSize,
-            Pointer curPacket, long time, NativeLong nData, byte data[]);
+            Pointer curPacket, long time, NativeLong nData, byte[] data);
 
     String kMIDIPropertyName = "kMIDIPropertyName";
 
@@ -322,7 +322,7 @@ public interface CoreMidiLibrary extends Library {
         public CFDictionaryRef() {
             super();
         }
-    };
+    }
 
     // / Pointer to unknown (opaque) type
     // / Pointer to unknown (opaque) type
@@ -334,7 +334,7 @@ public interface CoreMidiLibrary extends Library {
         public CFDataRef() {
             super();
         }
-    };
+    }
 
     // / Pointer to unknown (opaque) type
     // / Pointer to unknown (opaque) type
@@ -346,7 +346,7 @@ public interface CoreMidiLibrary extends Library {
         public MIDIClientRef() {
             super();
         }
-    };
+    }
 }
 // CHECKSTYLE:ON
 
