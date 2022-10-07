@@ -153,11 +153,12 @@ logger.info(transmitter.toString());
                         }
                     });
 
-                    sendMidiMessagesToPort(info.getName(), list);
+                    // default destination doesn't loopback, does it?
+                    sendMidiMessagesToPort("CoreMIDI Loopback Destination", list);
                     Thread.sleep(1000);
                     midiDevice.close();
 
-                    assertEquals(0, arrayIndex); // TODO
+                    assertEquals(2, arrayIndex);
                     assertNull(failureMessage);
                     break;
                 }
@@ -165,12 +166,15 @@ logger.info(transmitter.toString());
         }
     }
 
+    /**
+     * @param portName i made loopback enabled device named "CoreMIDI Loopback Destination"
+     */
     void sendMidiMessagesToPort(String portName, List<MidiMessage> messages) throws MidiUnavailableException {
         failureMessage = null;
         arrayIndex = 0;
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         for (Info info : midiDeviceInfos) {
-            if (!info.getName().equals(portName)) {
+            if (!info.getName().contains(portName)) {
                 continue;
             }
             if (info instanceof CoreMidiDeviceInfo) {

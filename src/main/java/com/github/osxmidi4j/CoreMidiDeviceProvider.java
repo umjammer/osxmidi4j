@@ -30,8 +30,15 @@ import java.util.logging.Logger;
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary.MIDINotifyProc;
 import com.github.osxmidi4j.midiservices.MIDINotification;
+import com.github.osxmidi4j.midiservices.MIDIPacketList;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.NativeLongByReference;
+import org.rococoa.Foundation;
+import org.rococoa.ID;
+
+import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
+
 
 public class CoreMidiDeviceProvider extends MidiDeviceProvider {
 
@@ -139,6 +146,33 @@ logger.fine("add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.k
             }
         }
 logger.fine("devices: " + props.deviceMap.size());
+
+        // TODO i wanna do add call back to default destination like
+        //  MIDISetCallbackToDestination(ep, readProc);
+        // https://stackoverflow.com/a/68162041
+        NativeLongByReference outDest = new NativeLongByReference();
+        ID nameId = Foundation.cfString("CoreMIDI Loopback Destination");
+        int osStatus = INSTANCE.MIDIDestinationCreate(props.client.getMidiClientRef(),
+                nameId, this::readProc, null, outDest);
+        if (osStatus != 0) {
+            logger.warning("MIDIDestinationCreate: " + osStatus);
+        } else {
+            NativeLong endpointRef = outDest.getValue();
+            MidiEndpoint ep = new MidiEndpoint(endpointRef);
+            Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
+logger.fine("add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
+            props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
+        }
+logger.fine("devices: " + props.deviceMap.size());
+    }
+
+    private void readProc(MIDIPacketList pktlist, Pointer readProcRefCon, Pointer srcConnRefCon) {
+logger.fine("readProc for CoreMIDI Loopback Destination called");
+        props.deviceMap.values().forEach(device -> {
+            if (device instanceof CoreMidiSource) {
+                ((CoreMidiSource) device).readProc(pktlist, readProcRefCon, srcConnRefCon);
+            }
+        });
     }
 
     private class NotificationReceiver implements MIDINotifyProc {
