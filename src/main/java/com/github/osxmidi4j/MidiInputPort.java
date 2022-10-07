@@ -17,36 +17,41 @@
 //
 package com.github.osxmidi4j;
 
-import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.sun.jna.NativeLong;
 
+import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
+
+
+/**
+ * CoreMidi::MidiInputPort.
+ */
 public class MidiInputPort {
 
     private final NativeLong midiPortRef;
 
-    public MidiInputPort(final NativeLong midiPortRef) {
+    private final String name;
+
+    public MidiInputPort(NativeLong midiPortRef, String name) {
         this.midiPortRef = midiPortRef;
+        this.name = name;
     }
 
-    public void connectSource(final MidiEndpoint source)
-            throws CoreMidiException {
-        final int midiPortConnectSource =
-                CoreMidiLibrary.INSTANCE.MIDIPortConnectSource(midiPortRef,
-                        source.getEndpointref(), null);
+    public void connectSource(final MidiEndpoint source) throws CoreMidiException {
+        int midiPortConnectSource = INSTANCE.MIDIPortConnectSource(midiPortRef, source.getEndpointRef(), null);
         if (midiPortConnectSource != 0) {
             throw new CoreMidiException(midiPortConnectSource);
         }
     }
 
-    public void disconnectSource(final MidiEndpoint source)
-            throws CoreMidiException {
-        final int midiPortDisconnectSource =
-                CoreMidiLibrary.INSTANCE.MIDIPortDisconnectSource(midiPortRef,
-                        source.getEndpointref());
+    public void disconnectSource(final MidiEndpoint source) throws CoreMidiException {
+        int midiPortDisconnectSource = INSTANCE.MIDIPortDisconnectSource(midiPortRef, source.getEndpointRef());
         if (midiPortDisconnectSource != 0) {
             throw new CoreMidiException(midiPortDisconnectSource);
         }
-
     }
 
+    @Override
+    public String toString() {
+        return "MidiInputPort(" + name + ")@" + midiPortRef.longValue();
+    }
 }

@@ -17,14 +17,13 @@
 //
 package com.github.osxmidi4j;
 
-import java.util.Iterator;
 import java.util.ServiceLoader;
 
 import javax.sound.midi.MidiDevice.Info;
 import javax.sound.midi.spi.MidiDeviceProvider;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.logging.Logger;
+
 
 public final class Main {
 
@@ -32,25 +31,17 @@ public final class Main {
      * This main class only runs a test to list the found ports by each
      * MidiDeviceProvider
      */
-    public static void main(final String[] args) {
-        final Logger logger = LogManager.getLogger(Main.class);
-        final ServiceLoader<MidiDeviceProvider> serviceLoader =
-                ServiceLoader.load(MidiDeviceProvider.class);
-        final Iterator<MidiDeviceProvider> iterator = serviceLoader.iterator();
-        while (iterator.hasNext()) {
-            final MidiDeviceProvider midiDeviceProvider =
-                    (MidiDeviceProvider) iterator.next();
-
-            final Info[] deviceInfo = midiDeviceProvider.getDeviceInfo();
-            logger.info(midiDeviceProvider.getClass().getName() + ": "
-                    + deviceInfo.length);
+    public static void main(String[] args) {
+        Logger logger = Logger.getLogger(Main.class.getName());
+        ServiceLoader<MidiDeviceProvider> serviceLoader = ServiceLoader.load(MidiDeviceProvider.class);
+        for (MidiDeviceProvider midiDeviceProvider : serviceLoader) {
+            Info[] deviceInfo = midiDeviceProvider.getDeviceInfo();
+            logger.info(midiDeviceProvider.getClass().getName() + ": " + deviceInfo.length);
 
             for (final Info info : deviceInfo) {
                 logger.info(info.getName());
             }
             logger.info("---------------\n");
         }
-
     }
-
 }

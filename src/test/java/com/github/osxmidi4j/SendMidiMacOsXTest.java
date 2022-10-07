@@ -31,19 +31,22 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Transmitter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class SendMidiMacOsXTest {
 
-    private final Logger logger = LogManager.getLogger(SendMidiMacOsXTest.class);
-    public static final int NUM_PORTS = 4;
+    private final Logger logger = Logger.getLogger(SendMidiMacOsXTest.class.getName());
+    public static final int MIN_NUM_PORTS = 2;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -59,22 +62,23 @@ public class SendMidiMacOsXTest {
             InvalidMidiDataException {
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         int portCount = 0;
+int i = 0;
         for (Info info : midiDeviceInfos) {
+logger.info("info[" + i++ + "]: " + info + ", " + (info instanceof CoreMidiDeviceInfo) + " --------");
             if (info instanceof CoreMidiDeviceInfo) {
                 MidiDevice midiDevice = MidiSystem.getMidiDevice(info);
+logger.info("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
                 if (midiDevice.getMaxReceivers() == -1) {
                     portCount++;
                     assertEquals(CoreMidiDestination.class, midiDevice.getClass());
                     midiDevice.open();
                     Receiver receiver = midiDevice.getReceiver();
                     ShortMessage shortMessage = new ShortMessage();
-                    shortMessage
-                            .setMessage(ShortMessage.CONTROL_CHANGE, 21, 35);
+                    shortMessage.setMessage(ShortMessage.CONTROL_CHANGE, 21, 35);
                     receiver.send(shortMessage, 0);
 
                     SysexMessage sysexMessage = new SysexMessage();
-                    byte[] buf =
-                            new byte[] {
+                    final byte[] buf = new byte[] {
                                     (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40,
                                     0x01, 0x33, 0x02, 0x0D, (byte) 0xF7 };
                     sysexMessage.setMessage(buf, buf.length);
@@ -83,7 +87,7 @@ public class SendMidiMacOsXTest {
                 }
             }
         }
-        assertEquals(NUM_PORTS, portCount);
+        assertTrue(portCount >= MIN_NUM_PORTS);
     }
 
     private String failureMessage = null;
@@ -94,23 +98,25 @@ public class SendMidiMacOsXTest {
             InvalidMidiDataException, InterruptedException {
 
         int portCount = 0;
-        final ArrayList<MidiMessage> list = new ArrayList<MidiMessage>();
+        final ArrayList<MidiMessage> list = new ArrayList<>();
         ShortMessage shortMessage = new ShortMessage();
         shortMessage.setMessage(ShortMessage.CONTROL_CHANGE, 0, 0);
         list.add(shortMessage);
 
         SysexMessage sysexMessage = new SysexMessage();
-        byte[] buf =
-                new byte[] {
+        final byte[] buf = new byte[] {
                         (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x01, 0x33,
                         0x02, 0x0D, (byte) 0xF7 };
         sysexMessage.setMessage(buf, buf.length);
         list.add(sysexMessage);
 
+int i = 0;
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         for (Info info : midiDeviceInfos) {
+logger.info("info[" + i++ + "]: " + info + ", " + (info instanceof CoreMidiDeviceInfo) + " --------");
             if (info instanceof CoreMidiDeviceInfo) {
                 MidiDevice midiDevice = MidiSystem.getMidiDevice(info);
+logger.info("device: " + midiDevice + ", " + midiDevice.getMaxTransmitters());
                 if (midiDevice.getMaxTransmitters() == -1) {
                     portCount++;
                     assertEquals(CoreMidiSource.class, midiDevice.getClass());
@@ -130,7 +136,7 @@ public class SendMidiMacOsXTest {
                                 assertEquals(msg.getLength(), arg0.getLength());
                             } catch (Exception e) {
                                 failureMessage = e.getMessage();
-                                logger.info(e.getMessage(), e);
+                                logger.log(Level.WARNING, e.getMessage(), e);
                             }
                         }
 
@@ -152,7 +158,7 @@ public class SendMidiMacOsXTest {
     }
 
     void sendMidiMessagesToPort(String portName, List<MidiMessage> messages)
-            throws MidiUnavailableException, InvalidMidiDataException {
+            throws MidiUnavailableException {
         logger.info("Sending messages to port " + portName);
         failureMessage = null;
         arrayIndex = 0;
@@ -175,9 +181,7 @@ public class SendMidiMacOsXTest {
                     receiver.send(midiMessage, 0);
                 }
                 midiDevice.close();
-
             }
         }
-
     }
 }

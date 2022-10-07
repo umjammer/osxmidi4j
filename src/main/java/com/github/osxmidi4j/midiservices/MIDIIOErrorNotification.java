@@ -33,7 +33,6 @@ public class MIDIIOErrorNotification extends Structure {
     // CHECKSTYLE:ON
 
     public MIDIIOErrorNotification() {
-        super();
     }
 
     protected List<String> getFieldOrder() {
@@ -43,7 +42,6 @@ public class MIDIIOErrorNotification extends Structure {
 
     public MIDIIOErrorNotification(final int messageID, final int messageSize,
             final NativeLong driverDevice, final int errorCode) {
-        super();
         this.messageID = messageID;
         this.messageSize = messageSize;
         this.driverDevice = driverDevice;

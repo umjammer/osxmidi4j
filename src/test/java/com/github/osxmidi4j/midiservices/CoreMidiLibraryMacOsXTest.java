@@ -17,8 +17,8 @@
 //
 package com.github.osxmidi4j.midiservices;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.logging.Logger;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,31 +32,26 @@ import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.NativeLongByReference;
 
+import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class CoreMidiLibraryMacOsXTest {
 
-    private static final Logger LOGGER = LogManager.getLogger(CoreMidiLibraryMacOsXTest.class);
+    private static final Logger logger = Logger.getLogger(CoreMidiLibraryMacOsXTest.class.getName());
 
     @BeforeEach
     public void setUp() throws Exception {
 
         // Create client
         ID clientName = Foundation.cfString("Client");
-        MIDINotifyProc notifyProc = new CoreMidiLibrary.MIDINotifyProc() {
-
-            @Override
-            public void apply(MIDINotification message, Pointer refCon) {
-            }
-        };
-        NativeLongByReference nativeLongByReference =
-                new NativeLongByReference();
-        LOGGER.info(nativeLongByReference.getValue().longValue());
-        int midiClientCreate =
-                CoreMidiLibrary.INSTANCE.MIDIClientCreate(clientName,
-                        notifyProc, null, nativeLongByReference);
-        LOGGER.info(nativeLongByReference.getValue().longValue());
-        LOGGER.info(midiClientCreate);
+        MIDINotifyProc notifyProc = (message, refCon) -> {};
+        NativeLongByReference nativeLongByReference = new NativeLongByReference();
+        logger.info(String.valueOf(nativeLongByReference.getValue().longValue()));
+        int osStatus = INSTANCE.MIDIClientCreate(clientName, notifyProc, null, nativeLongByReference);
+        logger.info(String.valueOf(nativeLongByReference.getValue().longValue()));
+        logger.info(String.valueOf(osStatus));
     }
 
     @AfterEach
@@ -65,23 +60,19 @@ public class CoreMidiLibraryMacOsXTest {
 
     @Test
     public void testNumPorts() {
-        NativeLong numberOfDestinations =
-                CoreMidiLibrary.INSTANCE.MIDIGetNumberOfDestinations();
-        assertEquals(SendMidiTest.NUM_PORTS, numberOfDestinations.intValue());
-        NativeLong numberOfSources =
-                CoreMidiLibrary.INSTANCE.MIDIGetNumberOfSources();
-        assertEquals(SendMidiTest.NUM_PORTS, numberOfSources.intValue());
+        NativeLong numberOfDestinations = INSTANCE.MIDIGetNumberOfDestinations();
+        assertTrue(numberOfDestinations.intValue() >= 1);
+        NativeLong numberOfSources = INSTANCE.MIDIGetNumberOfSources();
+        assertTrue(numberOfSources.intValue() >= 1);
     }
 
     @Test
     public void testCFStringReturn() {
         String prop = CoreMidiLibrary.kMIDIPropertyName;
-        Pointer kMIDIPropertyName =
-                CoreMidiLibrary.JNA_NATIVE_LIB.getGlobalVariableAddress(prop);
-        ID fromLong =
-                ID.fromLong(kMIDIPropertyName.getNativeLong(0).longValue());
+        Pointer kMIDIPropertyName = CoreMidiLibrary.JNA_NATIVE_LIB.getGlobalVariableAddress(prop);
+        ID fromLong = ID.fromLong(kMIDIPropertyName.getNativeLong(0).longValue());
         String result = Foundation.toString(fromLong);
-        LOGGER.info(result);
+        logger.info(result);
         assertEquals("name", result);
     }
 
@@ -89,48 +80,33 @@ public class CoreMidiLibraryMacOsXTest {
     public void testGetProperty() {
 
         // Get ports
-        int numberOfDevices =
-                CoreMidiLibrary.INSTANCE.MIDIGetNumberOfDevices().intValue();
+        int numberOfDevices = INSTANCE.MIDIGetNumberOfDevices().intValue();
         for (int i = 0; i < numberOfDevices; i++) {
-            NativeLong deviceRef =
-                    CoreMidiLibrary.INSTANCE.MIDIGetDevice(new NativeLong(i));
+            NativeLong deviceRef = INSTANCE.MIDIGetDevice(new NativeLong(i));
 
-            int numEntities =
-                    CoreMidiLibrary.INSTANCE.MIDIDeviceGetNumberOfEntities(
-                            deviceRef).intValue();
+            int numEntities = INSTANCE.MIDIDeviceGetNumberOfEntities(deviceRef).intValue();
             for (int j = 0; j < numEntities; j++) {
-                NativeLong entDestination =
-                        CoreMidiLibrary.INSTANCE.MIDIDeviceGetEntity(deviceRef,
-                                new NativeLong(j));
+                NativeLong entDestination = INSTANCE.MIDIDeviceGetEntity(deviceRef, new NativeLong(j));
 
-                int numSources =
-                        CoreMidiLibrary.INSTANCE.MIDIEntityGetNumberOfSources(
-                                entDestination).intValue();
+                int numSources = INSTANCE.MIDIEntityGetNumberOfSources(entDestination).intValue();
                 for (int k = 0; k < numSources; k++) {
-                    NativeLong endpointref =
-                            CoreMidiLibrary.INSTANCE.MIDIEntityGetSource(
-                                    entDestination, new NativeLong(k));
-                    printPropertyName(endpointref);
+                    NativeLong endPointRef = INSTANCE.MIDIEntityGetSource(entDestination, new NativeLong(k));
+                    printPropertyName(endPointRef);
                 }
             }
         }
     }
 
     void printPropertyName(NativeLong ref) {
-        Pointer kMIDIPropertyName =
-                CoreMidiLibrary.JNA_NATIVE_LIB
-                        .getGlobalVariableAddress("kMIDIPropertyName");
+        Pointer kMIDIPropertyName = CoreMidiLibrary.JNA_NATIVE_LIB.getGlobalVariableAddress("kMIDIPropertyName");
         long longValue = kMIDIPropertyName.getNativeLong(0).longValue();
         ID fromLong = ID.fromLong(longValue);
 
         // Get property
         IDByReference reference = new IDByReference();
-        int midiObjectGetStringProperty =
-                CoreMidiLibrary.INSTANCE.MIDIObjectGetStringProperty(
-                        ref.longValue(), fromLong, reference);
-        assertEquals(0, midiObjectGetStringProperty);
+        int osStatus = INSTANCE.MIDIObjectGetStringProperty(ref.longValue(), fromLong, reference);
+        assertEquals(0, osStatus);
         String s = Foundation.toString(reference.getValue());
-        LOGGER.info("Length: " + s.length() + ", " + s);
+        logger.info("Length: " + s.length() + ", " + s);
     }
-
 }

@@ -45,12 +45,9 @@ import com.sun.jna.ptr.NativeLongByReference;
  */
 // CHECKSTYLE:OFF *
 public interface CoreMidiLibrary extends Library {
-    String JNA_LIBRARY_NAME =
-            "CoreMIDI";
-    NativeLibrary JNA_NATIVE_LIB = NativeLibrary
-            .getInstance(CoreMidiLibrary.JNA_LIBRARY_NAME);
-    CoreMidiLibrary INSTANCE = Native.load(
-            CoreMidiLibrary.JNA_LIBRARY_NAME, CoreMidiLibrary.class);
+    String JNA_LIBRARY_NAME = "CoreMIDI";
+    NativeLibrary JNA_NATIVE_LIB = NativeLibrary.getInstance(CoreMidiLibrary.JNA_LIBRARY_NAME);
+    CoreMidiLibrary INSTANCE = Native.load(CoreMidiLibrary.JNA_LIBRARY_NAME, CoreMidiLibrary.class);
 
     int kMIDIInvalidClient = -10830;
     int kMIDIInvalidPort = -10831;
@@ -89,18 +86,17 @@ public interface CoreMidiLibrary extends Library {
     int kMIDIMsgSerialPortOwnerChanged = 6;
     int kMIDIMsgIOError = 7;
 
-    public interface MIDINotifyProc extends Callback {
+    interface MIDINotifyProc extends Callback {
         void apply(MIDINotification message, Pointer refCon);
-    };
+    }
 
-    public interface MIDIReadProc extends Callback {
-        void apply(MIDIPacketList pktlist, Pointer readProcRefCon,
-                Pointer srcConnRefCon);
-    };
+    interface MIDIReadProc extends Callback {
+        void apply(MIDIPacketList pktlist, Pointer readProcRefCon, Pointer srcConnRefCon);
+    }
 
-    public interface MIDICompletionProc extends Callback {
+    interface MIDICompletionProc extends Callback {
         void apply(Pointer request);
-    };
+    }
 
     int MIDIClientCreate(ID name, CoreMidiLibrary.MIDINotifyProc notifyProc,
             Pointer notifyRefCon, NativeLongByReference outClient);
@@ -111,13 +107,11 @@ public interface CoreMidiLibrary extends Library {
             CoreMidiLibrary.MIDIReadProc readProc, Pointer refCon,
             NativeLongByReference outPort);
 
-    int MIDIOutputPortCreate(NativeLong client, ID portName,
-            NativeLongByReference outPort);
+    int MIDIOutputPortCreate(NativeLong client, ID portName, NativeLongByReference outPort);
 
     int MIDIPortDispose(NativeLong port);
 
-    int MIDIPortConnectSource(NativeLong port, NativeLong source,
-            Pointer connRefCon);
+    int MIDIPortConnectSource(NativeLong port, NativeLong source, Pointer connRefCon);
 
     int MIDIPortDisconnectSource(NativeLong port, NativeLong source);
 
@@ -147,15 +141,12 @@ public interface CoreMidiLibrary extends Library {
 
     NativeLong MIDIGetDestination(NativeLong destIndex0);
 
-    int MIDIEndpointGetEntity(NativeLong inEndpoint,
-            NativeLongByReference outEntity);
+    int MIDIEndpointGetEntity(NativeLong inEndpoint, NativeLongByReference outEntity);
 
-    int MIDIDestinationCreate(NativeLong client, ID name,
-            CoreMidiLibrary.MIDIReadProc readProc, Pointer refCon,
+    int MIDIDestinationCreate(NativeLong client, ID name, CoreMidiLibrary.MIDIReadProc readProc, Pointer refCon,
             NativeLongByReference outDest);
 
-    int MIDISourceCreate(NativeLong client, ID name,
-            NativeLongByReference outSrc);
+    int MIDISourceCreate(NativeLong client, ID name, NativeLongByReference outSrc);
 
     int MIDIEndpointDispose(NativeLong endpt);
 
@@ -163,34 +154,27 @@ public interface CoreMidiLibrary extends Library {
 
     NativeLong MIDIGetExternalDevice(NativeLong deviceIndex0);
 
-    int MIDIObjectGetIntegerProperty(long obj, ID propertyID,
-            IntBuffer intBuffer);
+    int MIDIObjectGetIntegerProperty(long obj, ID propertyID, IntBuffer intBuffer);
 
     int MIDIObjectSetIntegerProperty(long obj, ID propertyID, int value);
 
-    int MIDIObjectGetStringProperty(long obj, ID propertyID,
-            IDByReference reference);
+    int MIDIObjectGetStringProperty(long obj, ID propertyID, IDByReference reference);
 
     int MIDIObjectSetStringProperty(long obj, ID propertyID, ID str);
 
-    int MIDIObjectGetDataProperty(long obj, ID propertyID,
-            CoreMidiLibrary.CFDataRef outData);
+    int MIDIObjectGetDataProperty(long obj, ID propertyID, CoreMidiLibrary.CFDataRef outData);
 
-    int MIDIObjectSetDataProperty(long obj, ID propertyID,
-            CoreMidiLibrary.CFDataRef data);
+    int MIDIObjectSetDataProperty(long obj, ID propertyID, CoreMidiLibrary.CFDataRef data);
 
-    int MIDIObjectGetDictionaryProperty(long obj, ID propertyID,
-            CoreMidiLibrary.CFDictionaryRef outDict);
+    int MIDIObjectGetDictionaryProperty(long obj, ID propertyID, CoreMidiLibrary.CFDictionaryRef outDict);
 
-    int MIDIObjectSetDictionaryProperty(long obj, ID propertyID,
-            CoreMidiLibrary.CFDictionaryRef data);
+    int MIDIObjectSetDictionaryProperty(long obj, ID propertyID, CoreMidiLibrary.CFDictionaryRef data);
 
     int MIDIObjectGetProperties(long obj, Pointer outProperties, byte deep);
 
     int MIDIObjectRemoveProperty(long obj, ID propertyID);
 
-    int MIDIObjectFindByUniqueID(int inUniqueID, Pointer outObject,
-            IntBuffer outObjectType);
+    int MIDIObjectFindByUniqueID(int inUniqueID, Pointer outObject, IntBuffer outObjectType);
 
     int MIDISend(NativeLong port, NativeLong dest, Pointer memory);
 
@@ -223,15 +207,13 @@ public interface CoreMidiLibrary extends Library {
 
     String kMIDIPropertyMaxSysExSpeed = "kMIDIPropertyMaxSysExSpeed";
 
-    String kMIDIPropertyAdvanceScheduleTimeMuSec =
-            "kMIDIPropertyAdvanceScheduleTimeMuSec";
+    String kMIDIPropertyAdvanceScheduleTimeMuSec = "kMIDIPropertyAdvanceScheduleTimeMuSec";
 
     String kMIDIPropertyIsEmbeddedEntity = "kMIDIPropertyIsEmbeddedEntity";
 
     String kMIDIPropertyIsBroadcast = "kMIDIPropertyIsBroadcast";
 
-    String kMIDIPropertySingleRealtimeEntity =
-            "kMIDIPropertySingleRealtimeEntity";
+    String kMIDIPropertySingleRealtimeEntity = "kMIDIPropertySingleRealtimeEntity";
 
     String kMIDIPropertyConnectionUniqueID = "kMIDIPropertyConnectionUniqueID";
 
@@ -241,8 +223,7 @@ public interface CoreMidiLibrary extends Library {
 
     String kMIDIPropertyDriverOwner = "kMIDIPropertyDriverOwner";
 
-    String kMIDIPropertyFactoryPatchNameFile =
-            "kMIDIPropertyFactoryPatchNameFile";
+    String kMIDIPropertyFactoryPatchNameFile = "kMIDIPropertyFactoryPatchNameFile";
 
     String kMIDIPropertyUserPatchNameFile = "kMIDIPropertyUserPatchNameFile";
 
@@ -252,8 +233,7 @@ public interface CoreMidiLibrary extends Library {
 
     String kMIDIPropertyDriverVersion = "kMIDIPropertyDriverVersion";
 
-    String kMIDIPropertySupportsGeneralMIDI =
-            "kMIDIPropertySupportsGeneralMIDI";
+    String kMIDIPropertySupportsGeneralMIDI = "kMIDIPropertySupportsGeneralMIDI";
 
     String kMIDIPropertySupportsMMC = "kMIDIPropertySupportsMMC";
 
@@ -265,14 +245,11 @@ public interface CoreMidiLibrary extends Library {
 
     String kMIDIPropertyReceivesNotes = "kMIDIPropertyReceivesNotes";
 
-    String kMIDIPropertyReceivesProgramChanges =
-            "kMIDIPropertyReceivesProgramChanges";
+    String kMIDIPropertyReceivesProgramChanges = "kMIDIPropertyReceivesProgramChanges";
 
-    String kMIDIPropertyReceivesBankSelectMSB =
-            "kMIDIPropertyReceivesBankSelectMSB";
+    String kMIDIPropertyReceivesBankSelectMSB = "kMIDIPropertyReceivesBankSelectMSB";
 
-    String kMIDIPropertyReceivesBankSelectLSB =
-            "kMIDIPropertyReceivesBankSelectLSB";
+    String kMIDIPropertyReceivesBankSelectLSB = "kMIDIPropertyReceivesBankSelectLSB";
 
     String kMIDIPropertyTransmitsClock = "kMIDIPropertyTransmitsClock";
 
@@ -280,14 +257,11 @@ public interface CoreMidiLibrary extends Library {
 
     String kMIDIPropertyTransmitsNotes = "kMIDIPropertyTransmitsNotes";
 
-    String kMIDIPropertyTransmitsProgramChanges =
-            "kMIDIPropertyTransmitsProgramChanges";
+    String kMIDIPropertyTransmitsProgramChanges = "kMIDIPropertyTransmitsProgramChanges";
 
-    String kMIDIPropertyTransmitsBankSelectMSB =
-            "kMIDIPropertyTransmitsBankSelectMSB";
+    String kMIDIPropertyTransmitsBankSelectMSB = "kMIDIPropertyTransmitsBankSelectMSB";
 
-    String kMIDIPropertyTransmitsBankSelectLSB =
-            "kMIDIPropertyTransmitsBankSelectLSB";
+    String kMIDIPropertyTransmitsBankSelectLSB = "kMIDIPropertyTransmitsBankSelectLSB";
 
     String kMIDIPropertyPanDisruptsStereo = "kMIDIPropertyPanDisruptsStereo";
 
@@ -301,20 +275,17 @@ public interface CoreMidiLibrary extends Library {
 
     String kMIDIPropertyMaxReceiveChannels = "kMIDIPropertyMaxReceiveChannels";
 
-    String kMIDIPropertyMaxTransmitChannels =
-            "kMIDIPropertyMaxTransmitChannels";
+    String kMIDIPropertyMaxTransmitChannels = "kMIDIPropertyMaxTransmitChannels";
 
-    String kMIDIPropertyDriverDeviceEditorApp =
-            "kMIDIPropertyDriverDeviceEditorApp";
+    String kMIDIPropertyDriverDeviceEditorApp = "kMIDIPropertyDriverDeviceEditorApp";
 
-    String kMIDIPropertySupportsShowControl =
-            "kMIDIPropertySupportsShowControl";
+    String kMIDIPropertySupportsShowControl = "kMIDIPropertySupportsShowControl";
 
     String kMIDIPropertyDisplayName = "kMIDIPropertyDisplayName";
 
     // / Pointer to unknown (opaque) type
     // / Pointer to unknown (opaque) type
-    public static class CFDictionaryRef extends PointerType {
+    class CFDictionaryRef extends PointerType {
         public CFDictionaryRef(Pointer address) {
             super(address);
         }
@@ -326,7 +297,7 @@ public interface CoreMidiLibrary extends Library {
 
     // / Pointer to unknown (opaque) type
     // / Pointer to unknown (opaque) type
-    public static class CFDataRef extends PointerType {
+    class CFDataRef extends PointerType {
         public CFDataRef(Pointer address) {
             super(address);
         }
@@ -338,7 +309,7 @@ public interface CoreMidiLibrary extends Library {
 
     // / Pointer to unknown (opaque) type
     // / Pointer to unknown (opaque) type
-    public static class MIDIClientRef extends PointerType {
+    class MIDIClientRef extends PointerType {
         public MIDIClientRef(Pointer address) {
             super(address);
         }

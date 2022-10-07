@@ -17,26 +17,39 @@
 //
 package com.github.osxmidi4j;
 
+import java.util.logging.Logger;
+
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.github.osxmidi4j.midiservices.MIDIPacketList;
 import com.sun.jna.NativeLong;
 
+
+/**
+ * CoreMidi::MidiOutputPort.
+ */
 public class MidiOutputPort {
+
+    private static final Logger logger = Logger.getLogger(MidiOutputPort.class.getName());
 
     private final NativeLong midiPortRef;
 
-    public MidiOutputPort(final NativeLong midiPortRef) {
+    private final String name;
+
+    public MidiOutputPort(NativeLong midiPortRef, String name) {
         this.midiPortRef = midiPortRef;
+        this.name = name;
     }
 
-    public void send(final MidiEndpoint dest, final MIDIPacketList plist)
-            throws CoreMidiException {
-        final int midiSend =
-                CoreMidiLibrary.INSTANCE.MIDISend(midiPortRef,
-                        dest.getEndpointref(), plist.getPointer());
+    public void send(MidiEndpoint dest, MIDIPacketList packets) throws CoreMidiException {
+        int midiSend = CoreMidiLibrary.INSTANCE.MIDISend(midiPortRef, dest.getEndpointRef(), packets.getPointer());
+logger.fine("send: " + midiSend);
         if (midiSend != 0) {
             throw new CoreMidiException(midiSend);
         }
     }
 
+    @Override
+    public String toString() {
+        return "MidiOutoutPort(" + name + ")@" + midiPortRef.longValue();
+    }
 }

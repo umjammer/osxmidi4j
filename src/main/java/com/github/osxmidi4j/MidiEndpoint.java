@@ -15,12 +15,13 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import java.nio.IntBuffer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.logging.Logger;
+
 import org.rococoa.Foundation;
 import org.rococoa.ID;
 import org.rococoa.IDByReference;
@@ -29,56 +30,53 @@ import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 
+import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
+
+
+/**
+ * Represents real pointer to MidiSource, MidiDestination.
+ */
 public class MidiEndpoint {
 
-    private static final Logger LOGGER = LogManager.getLogger(MidiEndpoint.class);
-
     private static final int BUFFER_SIZE = 256;
-    private final NativeLong endpointref;
+    private final NativeLong endpointRef;
 
-    public MidiEndpoint(final NativeLong endpointRef) {
-        this.endpointref = endpointRef;
+    public MidiEndpoint(NativeLong endpointRef) {
+        this.endpointRef = endpointRef;
     }
 
-    public int getProperty(final String kmidipropertyoffline)
-            throws CoreMidiException {
-        final ID propertyId = getPropertyId(kmidipropertyoffline);
-        final IntBuffer intBuffer = IntBuffer.allocate(BUFFER_SIZE);
-        final int midiObjectGetIntegerProperty =
-                CoreMidiLibrary.INSTANCE.MIDIObjectGetIntegerProperty(
-                        endpointref.longValue(), propertyId, intBuffer);
-        if (midiObjectGetIntegerProperty != 0) {
-            throw new CoreMidiException("endpointref "
-                    + endpointref.longValue() + " "
-                    + midiObjectGetIntegerProperty);
+    public int getProperty(String kMidiPropertyOffline) throws CoreMidiException {
+        ID propertyId = getPropertyId(kMidiPropertyOffline);
+        IntBuffer intBuffer = IntBuffer.allocate(BUFFER_SIZE);
+        int osStatus = INSTANCE.MIDIObjectGetIntegerProperty(endpointRef.longValue(), propertyId, intBuffer);
+        if (osStatus != 0) {
+            throw new CoreMidiException(osStatus);
         }
-        return intBuffer.get() & 0xffffffff;
+        return intBuffer.get();
     }
 
-    public String getStringProperty(final String kmidipropertydriverversion)
-            throws CoreMidiException {
-        final ID propertyId = getPropertyId(kmidipropertydriverversion);
-        final IDByReference reference = new IDByReference();
-        final int midiObjectGetStringProperty =
-                CoreMidiLibrary.INSTANCE.MIDIObjectGetStringProperty(
-                        endpointref.longValue(), propertyId, reference);
-        if (midiObjectGetStringProperty == 0) {
-LOGGER.info("kmidipropertydriverversion: " + Foundation.toString(reference.getValue()));
+    public String getStringProperty(String kMidiPropertyDriverVersion) throws CoreMidiException {
+        ID propertyId = getPropertyId(kMidiPropertyDriverVersion);
+        IDByReference reference = new IDByReference();
+        int osStatus = INSTANCE.MIDIObjectGetStringProperty(endpointRef.longValue(), propertyId, reference);
+        if (osStatus == 0) {
             return Foundation.toString(reference.getValue());
         } else {
-            throw new CoreMidiException(midiObjectGetStringProperty);
+            throw new CoreMidiException(osStatus);
         }
     }
 
-    ID getPropertyId(final String propertyName) {
-        final Pointer p =
-                CoreMidiLibrary.JNA_NATIVE_LIB
-                        .getGlobalVariableAddress(propertyName);
+    private ID getPropertyId(String propertyName) {
+        Pointer p = CoreMidiLibrary.JNA_NATIVE_LIB.getGlobalVariableAddress(propertyName);
         return ID.fromLong(p.getNativeLong(0).longValue());
     }
 
-    public NativeLong getEndpointref() {
-        return endpointref;
+    public NativeLong getEndpointRef() {
+        return endpointRef;
     }
 
+    @Override
+    public String toString() {
+        return "MidiEndpoint@" + endpointRef.longValue();
+    }
 }
