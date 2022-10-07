@@ -132,17 +132,17 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.14</version>
         <configuration>
-          <configLocation>codeanalysis/checkstyle-template.xml</configLocation>
-          <suppressionsLocation>codeanalysis/checkstyle-suppression.xml</suppressionsLocation>
+          <configLocation>test/codeanalysis/checkstyle-template.xml</configLocation>
+          <suppressionsLocation>test/codeanalysis/checkstyle-suppression.xml</suppressionsLocation>
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <version>3.0.5</version>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.7.2</version>
         <configuration>
-          <excludeFilterFile>codeanalysis/findbugs-exclude.xml</excludeFilterFile>
+          <excludeFilterFile>test/codeanalysis/findbugs-exclude.xml</excludeFilterFile>
         </configuration>
       </plugin>
       <plugin>
@@ -152,7 +152,7 @@
         <configuration>
           <targetJdk>1.8</targetJdk>
           <rulesets>
-            <ruleset>codeanalysis/pmd-template.xml</ruleset>
+            <ruleset>test/codeanalysis/pmd-template.xml</ruleset>
           </rulesets>
         </configuration>
       </plugin>

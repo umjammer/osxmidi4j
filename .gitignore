@@ -5,4 +5,4 @@ target/
 .pmd
 .ruleset
 .externalToolBuilders/
-codeanalysis/
+tmp/
