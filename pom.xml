@@ -4,13 +4,12 @@
 
   <groupId>com.locurasoft</groupId>
   <artifactId>osxmidi4j</artifactId>
-  <version>1.0.4-SNAPSHOT</version>
+  <version>1.0.4</version>
 
   <packaging>jar</packaging>
   <name>osxmidi4j</name>
   <description>osxmidi4j provides the Java MIDI API including Sysex messages for the Mac OS X platform.</description>
-  <url>https://github.com/locurasoft/osxmidi4j</url>
-
+  <url>https://github.com/umjammer/osxmidi4j</url>
   <licenses>
     <license>
       <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
@@ -19,9 +18,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git://github.com:locurasoft/osxmidi4j.git</connection>
-    <developerConnection>scm:git:git@github.com:locurasoft/osxmidi4j.git</developerConnection>
-    <url>http://github.com/locurasoft/osxmidi4j</url>
+    <connection>scm:git:git://github.com:umjammer/osxmidi4j.git</connection>
+    <developerConnection>scm:git:git@github.com:umjammer/osxmidi4j.git</developerConnection>
+    <url>http://github.com/umjammer/osxmidi4j</url>
   </scm>
   <developers>
     <developer>
@@ -30,7 +29,6 @@
   </developers>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <rococoa.version>0.8.4</rococoa.version>
   </properties>
 
@@ -50,6 +48,7 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+          <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
 
@@ -103,15 +102,19 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <debug>false</debug>
+              <additionalJOptions>
+                <additionalJOption>-J-Duser.language=en_US</additionalJOption>  <!-- TODO ad-hoc -->
+              </additionalJOptions>
+              <additionalOptions>
+                <additionalJOption>-Xdoclint:none</additionalJOption>
+                <additionalJOption>-Xdoclint:-missing</additionalJOption>
+              </additionalOptions>
+              <locale>en_US</locale> <!-- TODO doesn't work why ??? -->
+              <debug>true</debug>
               <verbose>false</verbose>
               <failOnWarnings>false</failOnWarnings>
               <failOnError>false</failOnError>
-              <additionalJOptions>
-                <additionalJOption>-Xdoclint:none</additionalJOption>
-                <additionalJOption>-Xdoclint:-missing</additionalJOption>
-              </additionalJOptions>
-              <doclint>none</doclint>
+              <quiet>true</quiet>
             </configuration>
           </execution>
         </executions>
@@ -135,7 +138,7 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.7.2</version>
+        <version>4.4.2.1</version>
         <configuration>
           <excludeFilterFile>test/codeanalysis/findbugs-exclude.xml</excludeFilterFile>
         </configuration>

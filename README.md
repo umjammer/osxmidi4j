@@ -8,17 +8,15 @@ osxmidi4j
 
 osxmidi4j provides the Java MIDI API including Sysex messages for the Mac OS X platform.
 
-## Release Notes
-
-### Version 1.0.4
-
-* Works with Mac OS X 11.6.6
+tested with MacOS 11.6.6
 
 ## Usage
 
 ### Maven
 
  * https://github.com/umjammer?tab=packages&repo_name=osxmidi4j
+ * this project uses gitlab package registry. add a personal access token to `~/.m2/settings.xml`
+ * see https://docs.gitlab.com/ee/user/packages/maven_repository/index.html#authenticate-to-the-package-registry-with-maven
 
 ## Project info
 
