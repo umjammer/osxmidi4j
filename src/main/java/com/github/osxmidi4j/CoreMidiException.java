@@ -15,11 +15,14 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 public class CoreMidiException extends Exception {
 
     private static final long serialVersionUID = 1082826830458488415L;
+
+    private int errorCode;
 
     public CoreMidiException() {
         super();
@@ -27,6 +30,7 @@ public class CoreMidiException extends Exception {
 
     public CoreMidiException(final int errorCode) {
         super("Midi Error: " + errorCode);
+        this.errorCode = errorCode;
     }
 
     public CoreMidiException(final String arg0, final Throwable arg1) {
@@ -41,4 +45,7 @@ public class CoreMidiException extends Exception {
         super(arg0);
     }
 
+    public int getErrorCode() {
+        return errorCode;
+    }
 }

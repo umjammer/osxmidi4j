@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiDevice.Info;
 import javax.sound.midi.MidiMessage;
@@ -34,8 +33,9 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Transmitter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,8 +44,8 @@ import com.github.osxmidi4j.midiservices.MIDIPacket;
 
 public class SendMidiTest {
 
-    private final Logger logger = LogManager.getLogger(getClass());
-    public static final int NUM_PORTS = 4;
+    private final Logger logger = Logger.getLogger(SendMidiTest.class.getName());
+    public static final int MIN_NUM_PORTS = 2;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -64,8 +64,7 @@ public class SendMidiTest {
         logger.info("Big sysex start!!");
 
         SysexMessage sysexMessage = new SysexMessage();
-        byte[] buf =
-                new byte[] {
+        byte[] buf = new byte[] {
                         (byte) 0xf0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
                         0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19,
@@ -98,35 +97,34 @@ public class SendMidiTest {
                         0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
                         0x0d, (byte) 0xf7 };
         sysexMessage.setMessage(buf, buf.length);
-        final List<MidiMessage> list = new ArrayList<MidiMessage>();
+        final List<MidiMessage> list = new ArrayList<>();
         list.add(sysexMessage);
 
         final byte[] firstMsg = new byte[MIDIPacket.DATA_SIZE];
         final byte[] secondMsg = new byte[buf.length - MIDIPacket.DATA_SIZE];
         System.arraycopy(buf, 0, firstMsg, 0, firstMsg.length);
-        System.arraycopy(buf, MIDIPacket.DATA_SIZE, secondMsg, 0,
-                secondMsg.length);
+        System.arraycopy(buf, MIDIPacket.DATA_SIZE, secondMsg, 0, secondMsg.length);
 
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         for (Info info : midiDeviceInfos) {
-logger.info(info);
+logger.info(info.toString());
             if (info instanceof CoreMidiDeviceInfo) {
                 MidiDevice midiDevice = MidiSystem.getMidiDevice(info);
-logger.info(midiDevice);
+logger.info(midiDevice.toString());
                 if (midiDevice.getMaxTransmitters() == -1) {
                     logger.info("Testing device " + info.getName());
                     midiDevice.open();
 
                     Transmitter transmitter = midiDevice.getTransmitter();
-logger.info(transmitter);
+logger.info(transmitter.toString());
                     transmitter.setReceiver(new Receiver() {
 
                         boolean first = true;
 
                         @Override
-                        public void send(MidiMessage arg0, long arg1) {
+                        public void send(MidiMessage m, long t) {
                             try {
-                                byte[] expected = null;
+                                byte[] expected;
                                 if (first) {
                                     logger.info("Received first midi message!");
                                     first = false;
@@ -137,18 +135,16 @@ logger.info(transmitter);
                                 }
 
                                 arrayIndex++;
-                                assertEquals(SysexMessage.class,
-                                        arg0.getClass());
-                                byte[] message = arg0.getMessage();
+                                assertEquals(SysexMessage.class, m.getClass());
+                                byte[] message = m.getMessage();
                                 if ((message[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
-                                    message = new byte[arg0.getLength() - 1];
-                                    System.arraycopy(arg0.getMessage(), 1,
-                                            message, 0, message.length);
+                                    message = new byte[m.getLength() - 1];
+                                    System.arraycopy(m.getMessage(), 1, message, 0, message.length);
                                 }
                                 assertArrayEquals(expected, message);
                             } catch (Exception e) {
                                 failureMessage = e.getMessage();
-                                logger.info(e.getMessage(), e);
+                                logger.log(Level.WARNING, e.getMessage(), e);
                             }
                         }
 
@@ -157,11 +153,12 @@ logger.info(transmitter);
                         }
                     });
 
-                    sendMidiMessagesToPort(info.getName(), list);
+                    // default destination doesn't loopback, does it?
+                    sendMidiMessagesToPort("CoreMIDI Loopback Destination", list);
                     Thread.sleep(1000);
                     midiDevice.close();
 
-                    assertEquals(0, arrayIndex); // TODO
+                    assertEquals(2, arrayIndex);
                     assertNull(failureMessage);
                     break;
                 }
@@ -169,13 +166,15 @@ logger.info(transmitter);
         }
     }
 
-    void sendMidiMessagesToPort(String portName, List<MidiMessage> messages)
-            throws MidiUnavailableException, InvalidMidiDataException {
+    /**
+     * @param portName i made loopback enabled device named "CoreMIDI Loopback Destination"
+     */
+    void sendMidiMessagesToPort(String portName, List<MidiMessage> messages) throws MidiUnavailableException {
         failureMessage = null;
         arrayIndex = 0;
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         for (Info info : midiDeviceInfos) {
-            if (!info.getName().equals(portName)) {
+            if (!info.getName().contains(portName)) {
                 continue;
             }
             if (info instanceof CoreMidiDeviceInfo) {
@@ -192,9 +191,7 @@ logger.info(transmitter);
                     receiver.send(midiMessage, 0);
                 }
                 midiDevice.close();
-
             }
         }
-
     }
 }

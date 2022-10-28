@@ -31,7 +31,6 @@ public class MIDINotification extends Structure {
     // CHECKSTYLE:ON
 
     public MIDINotification() {
-        super();
     }
 
     protected List<String> getFieldOrder() {
@@ -39,7 +38,6 @@ public class MIDINotification extends Structure {
     }
 
     public MIDINotification(final int messageID, final int messageSize) {
-        super();
         this.messageID = messageID;
         this.messageSize = messageSize;
     }
@@ -58,5 +56,5 @@ public class MIDINotification extends Structure {
 
     public void setMessageSize(final int messageSize) {
         this.messageSize = messageSize;
-    };
+    }
 }

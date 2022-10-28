@@ -44,9 +44,9 @@ public class MIDISysexSendRequest extends Structure {
     public static MIDISysexSendRequest newInstance(final MidiEndpoint dest,
             final MIDIPacket midiPacket, final MIDICompletionProc completionProc) {
         final MIDISysexSendRequest newInstance =
-                (MIDISysexSendRequest) Structure
+                Structure
                         .newInstance(MIDISysexSendRequest.class);
-        newInstance.destination = dest.getEndpointref();
+        newInstance.destination = dest.getEndpointRef();
         final int length = midiPacket.getData().length;
         final byte[] buf = midiPacket.getData();
         newInstance.data = new Memory(length);

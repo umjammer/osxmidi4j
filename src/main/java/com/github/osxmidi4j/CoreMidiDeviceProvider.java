@@ -17,21 +17,28 @@
 //
 package com.github.osxmidi4j;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.spi.MidiDeviceProvider;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary.MIDINotifyProc;
 import com.github.osxmidi4j.midiservices.MIDINotification;
+import com.github.osxmidi4j.midiservices.MIDIPacketList;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.NativeLongByReference;
+import org.rococoa.Foundation;
+import org.rococoa.ID;
+
+import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
+
 
 public class CoreMidiDeviceProvider extends MidiDeviceProvider {
 
@@ -42,36 +49,32 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
     private static final class MidiProperties {
         private MidiClient client;
         private MidiOutputPort output;
-        private final Map<Integer, MidiDevice> deviceMap =
-                new LinkedHashMap<Integer, MidiDevice>(DEVICE_MAP_SIZE);
+        private final Map<Integer, MidiDevice> deviceMap = new LinkedHashMap<>(DEVICE_MAP_SIZE);
         private MIDINotifyProc notifyProc;
     }
 
-    private static final MidiProperties PROPS = new MidiProperties();
+    private static final MidiProperties props = new MidiProperties();
 
-    private static final Logger LOG = LogManager
-            .getLogger(CoreMidiDeviceProvider.class);
+    private static final Logger logger = Logger.getLogger(CoreMidiDeviceProvider.class.getName());
 
     public CoreMidiDeviceProvider() throws CoreMidiException {
-        super();
         if (!isMac()) {
+            logger.fine("platform is not mac");
             return;
         }
-        synchronized (LOG) {
-            if (PROPS.client == null) {
+        synchronized (logger) {
+            if (props.client == null) {
                 try {
-                    PROPS.notifyProc = new NotificationReciever();
-                    PROPS.client =
-                            new MidiClient("CAProvider", PROPS.notifyProc);
-                    PROPS.output =
-                            PROPS.client
-                                    .outputPortCreate("CAMidiDeviceProvider Output");
+                    props.notifyProc = new NotificationReceiver();
+                    props.client = new MidiClient("CAProvider", props.notifyProc);
+logger.fine("midi client: " + props.client);
+                    props.output = props.client.outputPortCreate("CAMidiDeviceProvider Output");
                     buildDeviceMap();
                 } catch (final CoreMidiException e) {
-                    LOG.warn(e.getMessage(), e);
+                    logger.log(Level.WARNING, e.getMessage(), e);
                     throw e;
                 } catch (final Exception e) {
-                    LOG.warn(e.getMessage(), e);
+                    logger.log(Level.WARNING, e.getMessage(), e);
                 }
             }
         }
@@ -79,7 +82,7 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
 
     final boolean isMac() {
         final String os = System.getProperty("os.name").toLowerCase();
-        return (os.indexOf("mac") >= 0);
+        return (os.contains("mac"));
     }
 
     public MidiDevice getDevice(final MidiDevice.Info info) {
@@ -88,31 +91,18 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
         }
 
         final CoreMidiDeviceInfo cainfo = (CoreMidiDeviceInfo) info;
-        return (MidiDevice) PROPS.deviceMap.get(cainfo.getUniqueID());
+        return props.deviceMap.get(cainfo.getUniqueID());
     }
 
     public MidiDevice.Info[] getDeviceInfo() {
-        if (PROPS.deviceMap == null) {
-            return new MidiDevice.Info[0];
-        }
-        final MidiDevice.Info[] info =
-                new MidiDevice.Info[PROPS.deviceMap.size()];
-        final Iterator<MidiDevice> it = PROPS.deviceMap.values().iterator();
-
-        int counter = 0;
-        while (it.hasNext()) {
-            final MidiDevice i = it.next();
-            info[counter++] = (CoreMidiDeviceInfo) i.getDeviceInfo();
-        }
-
-        return info;
+        return props.deviceMap.values().stream().map(MidiDevice::getDeviceInfo).toArray(MidiDevice.Info[]::new);
     }
 
     public boolean isDeviceSupported(final MidiDevice.Info info) {
         boolean foundDevice = false;
-        if (PROPS.deviceMap != null && info instanceof CoreMidiDeviceInfo) {
+        if (info instanceof CoreMidiDeviceInfo) {
             final CoreMidiDeviceInfo cainfo = (CoreMidiDeviceInfo) info;
-            if (PROPS.deviceMap.containsKey(cainfo.getUniqueID())) {
+            if (props.deviceMap.containsKey(cainfo.getUniqueID())) {
                 foundDevice = true;
             }
         }
@@ -121,83 +111,103 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
     }
 
     static MidiClient getMIDIClient() throws CoreMidiException {
-        if (PROPS.client == null) {
+        if (props.client == null) {
             new CoreMidiDeviceProvider();
         }
-        return PROPS.client;
+        return props.client;
     }
 
     static MidiOutputPort getOutputPort() {
-        return PROPS.output;
+        return props.output;
     }
 
     private void buildDeviceMap() throws CoreMidiException {
-        int count =
-                CoreMidiLibrary.INSTANCE.MIDIGetNumberOfSources().intValue();
+        int count = INSTANCE.MIDIGetNumberOfSources().intValue();
         for (int source = 0; source < count; source++) {
-            final NativeLong endpointRef =
-                    CoreMidiLibrary.INSTANCE.MIDIGetSource(new NativeLong(
-                            source));
-            final MidiEndpoint ep = new MidiEndpoint(endpointRef);
-            final Integer uid =
-                    Integer.valueOf(ep
-                            .getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID));
+            NativeLong endpointRef = INSTANCE.MIDIGetSource(new NativeLong(source));
+            MidiEndpoint ep = new MidiEndpoint(endpointRef);
+            Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
 
-            if (!PROPS.deviceMap.containsKey(uid)) {
-                PROPS.deviceMap.put(uid, new CoreMidiSource(ep, uid));
+            if (!props.deviceMap.containsKey(uid)) {
+logger.fine("add CoreMidiSources: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
+                props.deviceMap.put(uid, new CoreMidiSource(ep, uid));
             }
         }
-        count =
-                CoreMidiLibrary.INSTANCE.MIDIGetNumberOfDestinations()
-                        .intValue();
+logger.fine("devices: " + props.deviceMap.size());
+        count = INSTANCE.MIDIGetNumberOfDestinations().intValue();
         for (int dest = 0; dest < count; dest++) {
-            final NativeLong endpointRef =
-                    CoreMidiLibrary.INSTANCE.MIDIGetDestination(new NativeLong(
-                            dest));
-            final MidiEndpoint ep = new MidiEndpoint(endpointRef);
-            final Integer uid =
-                    Integer.valueOf(ep
-                            .getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID));
+            NativeLong endpointRef = INSTANCE.MIDIGetDestination(new NativeLong(dest));
+            MidiEndpoint ep = new MidiEndpoint(endpointRef);
+            Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
 
-            if (!PROPS.deviceMap.containsKey(uid)) {
-                PROPS.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
+            if (!props.deviceMap.containsKey(uid)) {
+logger.fine("add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
+                props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
             }
         }
+logger.fine("devices: " + props.deviceMap.size());
+
+        // TODO i wanna do add call back to default destination like
+        //  MIDISetCallbackToDestination(ep, readProc);
+        // https://stackoverflow.com/a/68162041
+        NativeLongByReference outDest = new NativeLongByReference();
+        ID nameId = Foundation.cfString("CoreMIDI Loopback Destination");
+        int osStatus = INSTANCE.MIDIDestinationCreate(props.client.getMidiClientRef(),
+                nameId, this::readProc, null, outDest);
+        if (osStatus != 0) {
+            logger.warning("MIDIDestinationCreate: " + osStatus);
+        } else {
+            NativeLong endpointRef = outDest.getValue();
+            MidiEndpoint ep = new MidiEndpoint(endpointRef);
+            Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
+logger.fine("add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
+            props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
+        }
+logger.fine("devices: " + props.deviceMap.size());
     }
 
-    private class NotificationReciever implements MIDINotifyProc {
+    private void readProc(MIDIPacketList pktlist, Pointer readProcRefCon, Pointer srcConnRefCon) {
+logger.fine("readProc for CoreMIDI Loopback Destination called");
+        props.deviceMap.values().forEach(device -> {
+            if (device instanceof CoreMidiSource) {
+                ((CoreMidiSource) device).readProc(pktlist, readProcRefCon, srcConnRefCon);
+            }
+        });
+    }
+
+    private class NotificationReceiver implements MIDINotifyProc {
         @Override
         public void apply(final MIDINotification message, final Pointer refCon) {
             switch (message.getMessageID()) {
             case CoreMidiLibrary.kMIDIMsgObjectAdded:
             case CoreMidiLibrary.kMIDIMsgObjectRemoved:
-                PROPS.deviceMap.clear();
+                props.deviceMap.clear();
                 try {
                     buildDeviceMap();
                 } catch (final CoreMidiException e) {
-                    LOG.warn(e.getMessage(), e);
+                    logger.log(Level.WARNING, e.getMessage(), e);
                 }
                 break;
             default:
-                LOG.debug("Got " + message.getMessageID());
+                logger.fine("Got " + message.getMessageID());
                 break;
             }
         }
     }
 
     MidiClient getClient() {
-        return PROPS.client;
+        return props.client;
     }
 
     MidiOutputPort getOutput() {
-        return PROPS.output;
+        return props.output;
     }
 
     Map<Integer, MidiDevice> getDeviceMap() {
-        return PROPS.deviceMap;
+        return props.deviceMap;
     }
 
     MIDINotifyProc getNproc() {
-        return PROPS.notifyProc;
+        return props.notifyProc;
     }
 }

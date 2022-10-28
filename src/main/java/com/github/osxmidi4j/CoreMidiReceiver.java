@@ -27,22 +27,22 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.github.osxmidi4j.midiservices.MIDIPacket;
 import com.github.osxmidi4j.midiservices.MIDIPacketList;
 import com.github.osxmidi4j.midiservices.MIDISysexSendRequest;
-import com.github.osxmidi4j.midiservices.CoreMidiLibrary.MIDICompletionProc;
 import com.sun.jna.Pointer;
 
 public class CoreMidiReceiver implements Receiver {
 
-    private static final Logger LOGGER = LogManager
-            .getLogger(CoreMidiReceiver.class);
+    private static final Logger logger = Logger.getLogger(CoreMidiReceiver.class.getName());
+
     private final MidiEndpoint dest;
-    private final Set<Pointer> sendRequests = new HashSet<Pointer>();
+    private final Set<Pointer> sendRequests = new HashSet<>();
 
     CoreMidiReceiver(final MidiEndpoint ep) {
         dest = ep;
@@ -55,58 +55,53 @@ public class CoreMidiReceiver implements Receiver {
     public void send(final MidiMessage message, final long timeStamp) {
         try {
             if (dest.getProperty(CoreMidiLibrary.kMIDIPropertyOffline) == 1) {
+                logger.info("midi device is offline");
                 return;
             }
         } catch (final CoreMidiException e) {
-            LOGGER.warn(e.getMessage(), e);
+            // -10835 kMIDIUnknownProperty Attempt to query a property not set on the object.
+            // https://de.osdn.net/projects/miditrail/ticket/32542
+            if (e.getErrorCode() != -10835) {
+                logger.log(Level.WARNING, e.getMessage(), e);
+            }
         }
         try {
             // Don't deal with message directly because of bugs
             if (message instanceof ShortMessage) {
-                final ShortMessage m = (ShortMessage) message;
-                final MIDIPacketList midiPacketList =
-                        MIDIPacketList.Factory.newInstance();
+                ShortMessage m = (ShortMessage) message;
+                MIDIPacketList midiPacketList = MIDIPacketList.Factory.newInstance();
                 midiPacketList.add(new MIDIPacket(m));
-                CoreMidiDeviceProvider.getOutputPort().send(dest,
-                        midiPacketList);
+                CoreMidiDeviceProvider.getOutputPort().send(dest, midiPacketList);
+logger.fine("send short message: " + m + ", to MidiDestination: " + dest);
             } else if (message instanceof SysexMessage) {
-                final SysexMessage m = (SysexMessage) message;
-                ByteArrayInputStream is = null;
+                SysexMessage m = (SysexMessage) message;
+                ByteArrayInputStream is;
                 if (m.getStatus() == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
                     is = new ByteArrayInputStream(m.getData());
                 } else {
                     is = new ByteArrayInputStream(m.getMessage());
                 }
 
-                final byte[] buf = new byte[MIDIPacket.DATA_SIZE];
+                byte[] buf = new byte[MIDIPacket.DATA_SIZE];
                 int read = 0;
                 while ((read = is.read(buf)) != -1) {
-                    final MIDIPacket midiPacket =
-                            new MIDIPacket(timeStamp, (short) read, buf); // NOPMD 2013-10-04 21:51
-                    final MIDISysexSendRequest req =
-                            MIDISysexSendRequest.newInstance(dest, midiPacket,
-                                    new MIDICompletionCallback());
-                    final int midiSendSysex =
-                            CoreMidiLibrary.INSTANCE.MIDISendSysex(req
-                                    .getPointer());
+                    MIDIPacket midiPacket = new MIDIPacket(timeStamp, (short) read, buf); // NOPMD 2013-10-04 21:51
+                    MIDISysexSendRequest req = MIDISysexSendRequest.newInstance(dest, midiPacket, this::completed);
+                    int midiSendSysex = CoreMidiLibrary.INSTANCE.MIDISendSysex(req .getPointer());
                     if (midiSendSysex != 0) {
                         throw new CoreMidiException(midiSendSysex);
                     }
                     sendRequests.add(req.getPointer());
+logger.fine("add sendRequests sysex message: " + m + ", queue: " + sendRequests.size() + " to MidiDestination: " + dest);
                 }
             }
-        } catch (final CoreMidiException e) {
-            LOGGER.warn(e.getMessage(), e);
-        } catch (final IOException e) {
-            LOGGER.warn(e.getMessage(), e);
+        } catch (final CoreMidiException | IOException e) {
+            logger.log(Level.WARNING, e.getMessage(), e);
         }
     }
 
-    public class MIDICompletionCallback implements MIDICompletionProc {
-        @Override
-        public void apply(final Pointer request) {
-            LOGGER.debug("Completed: " + request.toString());
-            sendRequests.remove(request);
-        }
+    private void completed(Pointer request) {
+        sendRequests.remove(request);
+logger.fine("Completed sendRequests: " + request + ", queue: " + sendRequests.size());
     }
 }

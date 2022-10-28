@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.logging.Logger;
+
 
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
@@ -30,7 +30,7 @@ import com.sun.jna.Structure;
 
 public class MIDIPacketList extends Structure {
 
-    private static final Logger logger = LogManager.getLogger(MIDIPacketList.class);
+    private static final Logger logger = Logger.getLogger(MIDIPacketList.class.getName());
 
     public static final int NUM_PACKETS_SIZE = 4;
     private static final int LIST_SIZE = NUM_PACKETS_SIZE
@@ -50,11 +50,8 @@ public class MIDIPacketList extends Structure {
 
         public static MIDIPacketList newInstance() {
             final MIDIPacketList midiPacketList = new MIDIPacketList();
-            midiPacketList.currPacketPtr =
-                    CoreMidiLibrary.INSTANCE.MIDIPacketListInit(midiPacketList
-                            .getPointer());
-            midiPacketList.packet =
-                    new MIDIPacket(midiPacketList.currPacketPtr);
+            midiPacketList.currPacketPtr = CoreMidiLibrary.INSTANCE.MIDIPacketListInit(midiPacketList.getPointer());
+            midiPacketList.packet = new MIDIPacket(midiPacketList.currPacketPtr);
             return midiPacketList;
         }
     }
@@ -75,8 +72,7 @@ public class MIDIPacketList extends Structure {
         final int length = midiPacket.getLength();
         final byte[] data = midiPacket.getData();
         final long timeStamp = midiPacket.getTimeStamp();
-        currPacketPtr =
-                CoreMidiLibrary.INSTANCE.MIDIPacketListAdd(getPointer(),
+        currPacketPtr = CoreMidiLibrary.INSTANCE.MIDIPacketListAdd(getPointer(),
                         new NativeLong(LIST_SIZE), currPacketPtr, timeStamp,
                         new NativeLong(length), data);
         numPackets++;
@@ -96,8 +92,7 @@ public class MIDIPacketList extends Structure {
         private MIDIPacket currPacket;
 
         public PacketListIterator() {
-            final Pointer expected =
-                    MIDIPacketList.this.getPointer().share(NUM_PACKETS_SIZE);
+            final Pointer expected = MIDIPacketList.this.getPointer().share(NUM_PACKETS_SIZE);
             final Pointer actual = MIDIPacketList.this.packet.getPointer();
             if (actual.equals(expected)) {
                 currPacket = MIDIPacketList.this.packet;
@@ -119,11 +114,10 @@ public class MIDIPacketList extends Structure {
             if (hasNext()) {
 if (currPacket.length > currPacket.data.length) {
  // TODO ad-hoc
- logger.warn("packet: len: " + currPacket.length + ", data: " + currPacket.data.length);
+ logger.warning("packet: len: " + currPacket.length + ", data: " + currPacket.data.length);
  currPacket.length = (short) currPacket.data.length;
 }
-                final Pointer newPointer =
-                        currPacket.getPointer().share(currPacket.getLength());
+                final Pointer newPointer = currPacket.getPointer().share(currPacket.getLength());
                 currPacket = new MIDIPacket(newPointer);
                 currPacket.read();
             }
