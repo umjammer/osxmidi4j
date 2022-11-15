@@ -14,7 +14,7 @@ tested with MacOS 11.6.6
 
 ### Maven
 
- * https://github.com/umjammer?tab=packages&repo_name=osxmidi4j
+ * https://github.com/umjammer/osxmidi4j/packages/1297065
  * this project uses gitlab package registry. add a personal access token to `~/.m2/settings.xml`
  * see https://docs.gitlab.com/ee/user/packages/maven_repository/index.html#authenticate-to-the-package-registry-with-maven
 
