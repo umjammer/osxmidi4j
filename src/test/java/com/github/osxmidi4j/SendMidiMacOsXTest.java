@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ logger.info("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
                     receiver.send(shortMessage, 0);
 
                     SysexMessage sysexMessage = new SysexMessage();
-                    final byte[] buf = new byte[] {
+                    byte[] buf = new byte[] {
                                     (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40,
                                     0x01, 0x33, 0x02, 0x0D, (byte) 0xF7 };
                     sysexMessage.setMessage(buf, buf.length);
@@ -98,13 +99,13 @@ logger.info("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
             InvalidMidiDataException, InterruptedException {
 
         int portCount = 0;
-        final ArrayList<MidiMessage> list = new ArrayList<>();
+        ArrayList<MidiMessage> list = new ArrayList<>();
         ShortMessage shortMessage = new ShortMessage();
         shortMessage.setMessage(ShortMessage.CONTROL_CHANGE, 0, 0);
         list.add(shortMessage);
 
         SysexMessage sysexMessage = new SysexMessage();
-        final byte[] buf = new byte[] {
+        byte[] buf = new byte[] {
                         (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x01, 0x33,
                         0x02, 0x0D, (byte) 0xF7 };
         sysexMessage.setMessage(buf, buf.length);

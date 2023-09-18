@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import java.util.LinkedHashMap;
@@ -70,10 +71,10 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
 logger.fine("midi client: " + props.client);
                     props.output = props.client.outputPortCreate("CAMidiDeviceProvider Output");
                     buildDeviceMap();
-                } catch (final CoreMidiException e) {
+                } catch (CoreMidiException e) {
                     logger.log(Level.WARNING, e.getMessage(), e);
                     throw e;
-                } catch (final Exception e) {
+                } catch (Exception e) {
                     logger.log(Level.WARNING, e.getMessage(), e);
                 }
             }
@@ -81,16 +82,16 @@ logger.fine("midi client: " + props.client);
     }
 
     final boolean isMac() {
-        final String os = System.getProperty("os.name").toLowerCase();
+        String os = System.getProperty("os.name").toLowerCase();
         return (os.contains("mac"));
     }
 
-    public MidiDevice getDevice(final MidiDevice.Info info) {
+    public MidiDevice getDevice(MidiDevice.Info info) {
         if (!isDeviceSupported(info)) {
             throw new IllegalArgumentException();
         }
 
-        final CoreMidiDeviceInfo cainfo = (CoreMidiDeviceInfo) info;
+        CoreMidiDeviceInfo cainfo = (CoreMidiDeviceInfo) info;
         return props.deviceMap.get(cainfo.getUniqueID());
     }
 
@@ -98,10 +99,9 @@ logger.fine("midi client: " + props.client);
         return props.deviceMap.values().stream().map(MidiDevice::getDeviceInfo).toArray(MidiDevice.Info[]::new);
     }
 
-    public boolean isDeviceSupported(final MidiDevice.Info info) {
+    public boolean isDeviceSupported(MidiDevice.Info info) {
         boolean foundDevice = false;
-        if (info instanceof CoreMidiDeviceInfo) {
-            final CoreMidiDeviceInfo cainfo = (CoreMidiDeviceInfo) info;
+        if (info instanceof CoreMidiDeviceInfo cainfo) {
             if (props.deviceMap.containsKey(cainfo.getUniqueID())) {
                 foundDevice = true;
             }
@@ -138,12 +138,12 @@ logger.fine("devices: " + props.deviceMap.size());
         for (int dest = 0; dest < count; dest++) {
             NativeLong endpointRef = INSTANCE.MIDIGetDestination(new NativeLong(dest));
             MidiEndpoint ep = new MidiEndpoint(endpointRef);
-            Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
+                Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
 
-            if (!props.deviceMap.containsKey(uid)) {
+                if (!props.deviceMap.containsKey(uid)) {
 logger.fine("add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
-                props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
-            }
+                    props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
+                }
         }
 logger.fine("devices: " + props.deviceMap.size());
 
@@ -177,14 +177,14 @@ logger.fine("readProc for CoreMIDI Loopback Destination called");
 
     private class NotificationReceiver implements MIDINotifyProc {
         @Override
-        public void apply(final MIDINotification message, final Pointer refCon) {
+        public void apply(MIDINotification message, Pointer refCon) {
             switch (message.getMessageID()) {
             case CoreMidiLibrary.kMIDIMsgObjectAdded:
             case CoreMidiLibrary.kMIDIMsgObjectRemoved:
                 props.deviceMap.clear();
                 try {
                     buildDeviceMap();
-                } catch (final CoreMidiException e) {
+                } catch (CoreMidiException e) {
                     logger.log(Level.WARNING, e.getMessage(), e);
                 }
                 break;

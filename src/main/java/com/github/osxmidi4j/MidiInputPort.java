@@ -36,15 +36,15 @@ public class MidiInputPort {
         this.name = name;
     }
 
-    public void connectSource(final MidiEndpoint source) throws CoreMidiException {
-        int midiPortConnectSource = INSTANCE.MIDIPortConnectSource(midiPortRef, source.getEndpointRef(), null);
+    public void connectSource(MidiEndpoint source) throws CoreMidiException {
+        int midiPortConnectSource = INSTANCE.MIDIPortConnectSource(midiPortRef, source.endpointRef(), null);
         if (midiPortConnectSource != 0) {
             throw new CoreMidiException(midiPortConnectSource);
         }
     }
 
-    public void disconnectSource(final MidiEndpoint source) throws CoreMidiException {
-        int midiPortDisconnectSource = INSTANCE.MIDIPortDisconnectSource(midiPortRef, source.getEndpointRef());
+    public void disconnectSource(MidiEndpoint source) throws CoreMidiException {
+        int midiPortDisconnectSource = INSTANCE.MIDIPortDisconnectSource(midiPortRef, source.endpointRef());
         if (midiPortDisconnectSource != 0) {
             throw new CoreMidiException(midiPortDisconnectSource);
         }

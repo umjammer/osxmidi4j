@@ -97,11 +97,11 @@ public class SendMidiTest {
                         0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
                         0x0d, (byte) 0xf7 };
         sysexMessage.setMessage(buf, buf.length);
-        final List<MidiMessage> list = new ArrayList<>();
+        List<MidiMessage> list = new ArrayList<>();
         list.add(sysexMessage);
 
-        final byte[] firstMsg = new byte[MIDIPacket.DATA_SIZE];
-        final byte[] secondMsg = new byte[buf.length - MIDIPacket.DATA_SIZE];
+        byte[] firstMsg = new byte[MIDIPacket.DATA_SIZE];
+        byte[] secondMsg = new byte[buf.length - MIDIPacket.DATA_SIZE];
         System.arraycopy(buf, 0, firstMsg, 0, firstMsg.length);
         System.arraycopy(buf, MIDIPacket.DATA_SIZE, secondMsg, 0, secondMsg.length);
 

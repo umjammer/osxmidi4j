@@ -57,7 +57,7 @@ public class CoreMidiSource implements MidiDevice {
     private final MidiEndpoint source;
     private MidiInputPort input = null;
 
-    public CoreMidiSource(final MidiEndpoint ep, final Integer uid, final String namePrefix) {
+    public CoreMidiSource(MidiEndpoint ep, Integer uid, String namePrefix) {
         transmitters = new ArrayList<>();
         source = ep;
         String name = "", vendor = "", description = "", version = "";
@@ -65,13 +65,13 @@ public class CoreMidiSource implements MidiDevice {
             name = namePrefix
                             + " "
                             + source.getStringProperty(CoreMidiLibrary.kMIDIPropertyName);
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             logger.warning(CoreMidiLibrary.kMIDIPropertyName);
             logger.warning(e.getMessage());
         }
         try {
             version = Integer.toString(source.getProperty(CoreMidiLibrary.kMIDIPropertyDriverVersion));
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             if (e.getErrorCode() == -10835) {
                 // Some ports don't have driver versions
                 logger.fine(name + " kMIDIPropertyDriverVersion not found");
@@ -82,7 +82,7 @@ public class CoreMidiSource implements MidiDevice {
         }
         try {
             vendor = source.getStringProperty(CoreMidiLibrary.kMIDIPropertyManufacturer);
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             if (e.getErrorCode() == -10835) {
                 logger.fine(name + " kMIDIPropertyManufacturer not found");
             } else {
@@ -93,14 +93,14 @@ public class CoreMidiSource implements MidiDevice {
         try {
             // Should I use something else for the description?
             description = source.getStringProperty(CoreMidiLibrary.kMIDIPropertyModel);
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             logger.warning(name + " " + CoreMidiLibrary.kMIDIPropertyModel);
             logger.warning(e.getMessage());
         }
         info = new CoreMidiDeviceInfo(name, vendor, description, version, uid);
     }
 
-    public CoreMidiSource(final MidiEndpoint ep, final Integer uid) {
+    public CoreMidiSource(MidiEndpoint ep, Integer uid) {
         this(ep, uid, CoreMidiDeviceProvider.DEVICE_NAME_PREFIX);
     }
 
@@ -113,7 +113,7 @@ public class CoreMidiSource implements MidiDevice {
         if (input != null) {
             try {
                 input.disconnectSource(source);
-            } catch (final CoreMidiException e) {
+            } catch (CoreMidiException e) {
                 logger.log(Level.WARNING, e.getMessage(), e);
             }
         }
@@ -144,7 +144,7 @@ public class CoreMidiSource implements MidiDevice {
         boolean retVal = false;
         try {
             retVal = source.getProperty(CoreMidiLibrary.kMIDIPropertyOffline) == 1;
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
         }
         return retVal;
@@ -157,7 +157,7 @@ public class CoreMidiSource implements MidiDevice {
 
     @Override
     public Transmitter getTransmitter() {
-        final Transmitter t = new Transmitter() {
+        Transmitter t = new Transmitter() {
             private Receiver r = null;
 
             @Override public void close() {
@@ -168,7 +168,7 @@ public class CoreMidiSource implements MidiDevice {
                 return r;
             }
 
-            @Override public void setReceiver(final Receiver r) {
+            @Override public void setReceiver(Receiver r) {
                 this.r = r;
             }
         };
@@ -195,20 +195,20 @@ public class CoreMidiSource implements MidiDevice {
 logger.log(Level.FINE, String.format("MidiInputPort %s connected to MidiSource: %s", input, source));
             }
             sourceOpen = true;
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
         }
     }
 
     // From CoreMidiLibrary
-    private void findMessages(final byte[] data) throws InvalidMidiDataException {
+    private void findMessages(byte[] data) throws InvalidMidiDataException {
         int status = data[0] & BYTE_MAX;
-        final int len = data.length;
+        int len = data.length;
         if (status == SysexMessage.SYSTEM_EXCLUSIVE || (status & HALF_BYTE) == 0) {
-            final byte[] d = new byte[len];
+            byte[] d = new byte[len];
             System.arraycopy(data, 0, d, 0, len);
 
-            final SysexMessage msg = new SysexMessage();
+            SysexMessage msg = new SysexMessage();
             if (status == SysexMessage.SYSTEM_EXCLUSIVE) {
                 msg.setMessage(d, len);
             } else {
@@ -218,7 +218,7 @@ logger.log(Level.FINE, String.format("MidiInputPort %s connected to MidiSource: 
             transmitMessage(msg);
         } else {
             int d1, d2;
-            final ShortMessage msg = new ShortMessage();
+            ShortMessage msg = new ShortMessage();
             for (int i = 0; i < len; i++) {
                 status = data[i] & BYTE_MAX;
                 if ((i + 1 < len) && (data[i + 1] & HALF_BYTE) == 0) {
@@ -237,11 +237,11 @@ logger.log(Level.FINE, String.format("MidiInputPort %s connected to MidiSource: 
         }
     }
 
-    private void transmitMessage(final MidiMessage msg) {
+    private void transmitMessage(MidiMessage msg) {
         synchronized (transmitters) {
             for (Transmitter t : transmitters) {
                 if (t != null) {
-                    final Receiver r = t.getReceiver();
+                    Receiver r = t.getReceiver();
                     if (r != null) {
                         r.send(msg, -1);
                     }
@@ -253,16 +253,16 @@ logger.log(Level.FINE, String.format("MidiInputPort %s connected to MidiSource: 
     public void readProc(MIDIPacketList pktlist, Pointer readProcRefCon, Pointer srcConnRefCon) {
         logger.fine("MIDIPacketList numpackets: " + pktlist.getNumPackets());
         try {
-            final Iterator<MIDIPacket> iterator = pktlist.iterator();
+            Iterator<MIDIPacket> iterator = pktlist.iterator();
             while (iterator.hasNext()) {
-                final MIDIPacket midiPacket = iterator.next();
+                MIDIPacket midiPacket = iterator.next();
                 if (midiPacket.getData().length > 0) {
                     findMessages(midiPacket.getData());
                 } else {
                     logger.warning("0 length message");
                 }
             }
-        } catch (final InvalidMidiDataException e) {
+        } catch (InvalidMidiDataException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
         }
     }

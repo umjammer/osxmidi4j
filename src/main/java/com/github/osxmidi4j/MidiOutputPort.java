@@ -41,7 +41,7 @@ public class MidiOutputPort {
     }
 
     public void send(MidiEndpoint dest, MIDIPacketList packets) throws CoreMidiException {
-        int midiSend = CoreMidiLibrary.INSTANCE.MIDISend(midiPortRef, dest.getEndpointRef(), packets.getPointer());
+        int midiSend = CoreMidiLibrary.INSTANCE.MIDISend(midiPortRef, dest.endpointRef(), packets.getPointer());
 logger.fine("send: " + midiSend);
         if (midiSend != 0) {
             throw new CoreMidiException(midiSend);

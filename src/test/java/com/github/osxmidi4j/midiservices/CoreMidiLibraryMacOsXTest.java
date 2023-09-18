@@ -26,7 +26,6 @@ import org.rococoa.Foundation;
 import org.rococoa.ID;
 import org.rococoa.IDByReference;
 
-import com.github.osxmidi4j.SendMidiTest;
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary.MIDINotifyProc;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;

@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.logging.Logger;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 
+
 public class MIDIPacket extends Structure {
 
     private static final Logger logger = Logger.getLogger(MIDIPacket.class.getName());
@@ -38,23 +40,22 @@ public class MIDIPacket extends Structure {
     public static final int TIMESTAMP_SIZE = 8;
 
     // CHECKSTYLE:OFF Visibility
+
     public long timeStamp;
     public short length; // NOPMD 2013-10-04 21:52
     public byte[] data = new byte[DATA_SIZE + EXTRA_DATA_SIZE];
 
     // CHECKSTYLE:ON
 
-    public MIDIPacket(final int bufferSize) {
-        super();
+    public MIDIPacket(int bufferSize) {
         data = new byte[bufferSize];
         length = (short) data.length; // NOPMD 2013-10-04 21:52
         allocateMemory();
 //logger.fine("here 2: " + length);
     }
 
-    public MIDIPacket(final long timeStamp, final short length, // NOPMD 2013-10-04 21:52
-            final byte[] data) {
-        super();
+    public MIDIPacket(long timeStamp, short length, // NOPMD 2013-10-04 21:52
+            byte[] data) {
         this.timeStamp = timeStamp;
         this.length = length;
         this.data = new byte[data.length];
@@ -68,21 +69,20 @@ if (length != data.length) {
     }
 
     public MIDIPacket() {
-        super();
 //logger.fine("here 0");
     }
 
-    public MIDIPacket(final Pointer pointer) {
+    public MIDIPacket(Pointer pointer) {
         super(pointer);
 //logger.fine("here 1");
     }
 
-    public MIDIPacket(final ShortMessage msg) {
-        super();
-        final byte[] src =
-                new byte[] {
-                        (byte) msg.getStatus(), (byte) msg.getData1(),
-                        (byte) msg.getData2() };
+    public MIDIPacket(ShortMessage msg) {
+        byte[] src = new byte[] {
+                (byte) msg.getStatus(),
+                (byte) msg.getData1(),
+                (byte) msg.getData2()
+        };
         System.arraycopy(src, 0, this.data, 0, src.length);
         length = (short) src.length; // NOPMD 2013-10-04 21:52
         timeStamp = 0;
@@ -94,7 +94,7 @@ if (length != data.length) {
     }
 
     public byte[] getData() {
-        final byte[] buf = new byte[length];
+        byte[] buf = new byte[length];
         System.arraycopy(data, 0, buf, 0, Math.min(length, data.length));
         return buf;
     }

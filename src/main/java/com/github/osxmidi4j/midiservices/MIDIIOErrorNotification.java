@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import com.sun.jna.Structure;
 
 public class MIDIIOErrorNotification extends Structure {
     // CHECKSTYLE:OFF Visibility
+
     public int messageID;
     public int messageSize;
     public NativeLong driverDevice;
@@ -40,8 +42,8 @@ public class MIDIIOErrorNotification extends Structure {
                 "errorCode");
     }
 
-    public MIDIIOErrorNotification(final int messageID, final int messageSize,
-            final NativeLong driverDevice, final int errorCode) {
+    public MIDIIOErrorNotification(int messageID, int messageSize,
+                                   NativeLong driverDevice, int errorCode) {
         this.messageID = messageID;
         this.messageSize = messageSize;
         this.driverDevice = driverDevice;

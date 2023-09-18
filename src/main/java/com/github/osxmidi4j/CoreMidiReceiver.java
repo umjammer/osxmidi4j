@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import java.io.ByteArrayInputStream;
@@ -37,6 +38,7 @@ import com.github.osxmidi4j.midiservices.MIDIPacketList;
 import com.github.osxmidi4j.midiservices.MIDISysexSendRequest;
 import com.sun.jna.Pointer;
 
+
 public class CoreMidiReceiver implements Receiver {
 
     private static final Logger logger = Logger.getLogger(CoreMidiReceiver.class.getName());
@@ -44,7 +46,7 @@ public class CoreMidiReceiver implements Receiver {
     private final MidiEndpoint dest;
     private final Set<Pointer> sendRequests = new HashSet<>();
 
-    CoreMidiReceiver(final MidiEndpoint ep) {
+    CoreMidiReceiver(MidiEndpoint ep) {
         dest = ep;
     }
 
@@ -52,13 +54,13 @@ public class CoreMidiReceiver implements Receiver {
         // Not needed.
     }
 
-    public void send(final MidiMessage message, final long timeStamp) {
+    public void send(MidiMessage message, long timeStamp) {
         try {
             if (dest.getProperty(CoreMidiLibrary.kMIDIPropertyOffline) == 1) {
                 logger.info("midi device is offline");
                 return;
             }
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             // -10835 kMIDIUnknownProperty Attempt to query a property not set on the object.
             // https://de.osdn.net/projects/miditrail/ticket/32542
             if (e.getErrorCode() != -10835) {
@@ -95,7 +97,7 @@ logger.fine("send short message: " + m + ", to MidiDestination: " + dest);
 logger.fine("add sendRequests sysex message: " + m + ", queue: " + sendRequests.size() + " to MidiDestination: " + dest);
                 }
             }
-        } catch (final CoreMidiException | IOException e) {
+        } catch (CoreMidiException | IOException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
         }
     }

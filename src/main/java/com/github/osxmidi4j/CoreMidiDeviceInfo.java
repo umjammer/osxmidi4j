@@ -15,15 +15,17 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import javax.sound.midi.MidiDevice;
 
+
 public class CoreMidiDeviceInfo extends MidiDevice.Info {
+
     private final Integer uid;
 
-    public CoreMidiDeviceInfo(final String name, final String vendor,
-            final String description, final String version, final Integer uid) {
+    public CoreMidiDeviceInfo(String name, String vendor, String description, String version, Integer uid) {
         super(name, vendor, description, version);
         this.uid = uid;
     }
