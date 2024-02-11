@@ -18,11 +18,12 @@
 
 package com.github.osxmidi4j.midiservices;
 
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import java.util.logging.Logger;
+import java.lang.System.Logger;
 
 
 import com.sun.jna.NativeLong;
@@ -32,7 +33,7 @@ import com.sun.jna.Structure;
 
 public class MIDIPacketList extends Structure {
 
-    private static final Logger logger = Logger.getLogger(MIDIPacketList.class.getName());
+    private static final Logger logger = System.getLogger(MIDIPacketList.class.getName());
 
     public static final int NUM_PACKETS_SIZE = 4;
     private static final int LIST_SIZE = NUM_PACKETS_SIZE
@@ -117,7 +118,7 @@ public class MIDIPacketList extends Structure {
             if (hasNext()) {
 if (currPacket.length > currPacket.data.length) {
  // TODO ad-hoc
- logger.warning("packet: len: " + currPacket.length + ", data: " + currPacket.data.length);
+ logger.log(Level.WARNING, "packet: len: " + currPacket.length + ", data: " + currPacket.data.length);
  currPacket.length = (short) currPacket.data.length;
 }
                 Pointer newPointer = currPacket.getPointer().share(currPacket.getLength());

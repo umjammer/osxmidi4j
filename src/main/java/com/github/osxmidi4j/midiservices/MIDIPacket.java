@@ -18,12 +18,13 @@
 
 package com.github.osxmidi4j.midiservices;
 
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.sound.midi.ShortMessage;
 
-import java.util.logging.Logger;
+import java.lang.System.Logger;
 
 
 import com.sun.jna.Pointer;
@@ -32,7 +33,7 @@ import com.sun.jna.Structure;
 
 public class MIDIPacket extends Structure {
 
-    private static final Logger logger = Logger.getLogger(MIDIPacket.class.getName());
+    private static final Logger logger = System.getLogger(MIDIPacket.class.getName());
 
     public static final int EXTRA_DATA_SIZE = 6;
     public static final int DATA_SIZE = 256;
@@ -51,7 +52,7 @@ public class MIDIPacket extends Structure {
         data = new byte[bufferSize];
         length = (short) data.length; // NOPMD 2013-10-04 21:52
         allocateMemory();
-//logger.fine("here 2: " + length);
+//logger.log(Level.DEBUG, "here 2: " + length);
     }
 
     public MIDIPacket(long timeStamp, short length, // NOPMD 2013-10-04 21:52
@@ -64,17 +65,17 @@ if (length < 0) {
  new Exception("length " + length).printStackTrace();
 }
 if (length != data.length) {
- logger.fine("here 3: " + length + ", " + data.length);
+ logger.log(Level.DEBUG, "here 3: " + length + ", " + data.length);
 }
     }
 
     public MIDIPacket() {
-//logger.fine("here 0");
+//logger.log(Level.DEBUG, "here 0");
     }
 
     public MIDIPacket(Pointer pointer) {
         super(pointer);
-//logger.fine("here 1");
+//logger.log(Level.DEBUG, "here 1");
     }
 
     public MIDIPacket(ShortMessage msg) {
@@ -86,7 +87,7 @@ if (length != data.length) {
         System.arraycopy(src, 0, this.data, 0, src.length);
         length = (short) src.length; // NOPMD 2013-10-04 21:52
         timeStamp = 0;
-//logger.fine("here 4: " + length + ", " + data.length);
+//logger.log(Level.DEBUG, "here 4: " + length + ", " + data.length);
     }
 
     protected List<String> getFieldOrder() {

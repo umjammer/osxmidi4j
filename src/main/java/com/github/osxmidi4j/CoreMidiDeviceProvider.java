@@ -24,8 +24,8 @@ import java.util.Map;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.spi.MidiDeviceProvider;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.lang.System.Logger.Level;
+import java.lang.System.Logger;
 
 
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
@@ -56,11 +56,11 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
 
     private static final MidiProperties props = new MidiProperties();
 
-    private static final Logger logger = Logger.getLogger(CoreMidiDeviceProvider.class.getName());
+    private static final Logger logger = System.getLogger(CoreMidiDeviceProvider.class.getName());
 
     public CoreMidiDeviceProvider() throws CoreMidiException {
         if (!isMac()) {
-            logger.fine("platform is not mac");
+            logger.log(Level.DEBUG, "platform is not mac");
             return;
         }
         synchronized (logger) {
@@ -68,7 +68,7 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
                 try {
                     props.notifyProc = new NotificationReceiver();
                     props.client = new MidiClient("CAProvider", props.notifyProc);
-logger.fine("midi client: " + props.client);
+logger.log(Level.DEBUG, "midi client: " + props.client);
                     props.output = props.client.outputPortCreate("CAMidiDeviceProvider Output");
                     buildDeviceMap();
                 } catch (CoreMidiException e) {
@@ -129,11 +129,11 @@ logger.fine("midi client: " + props.client);
             Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
 
             if (!props.deviceMap.containsKey(uid)) {
-logger.fine("add CoreMidiSources: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
+logger.log(Level.DEBUG, "add CoreMidiSources: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
                 props.deviceMap.put(uid, new CoreMidiSource(ep, uid));
             }
         }
-logger.fine("devices: " + props.deviceMap.size());
+logger.log(Level.DEBUG, "devices: " + props.deviceMap.size());
         count = INSTANCE.MIDIGetNumberOfDestinations().intValue();
         for (int dest = 0; dest < count; dest++) {
             NativeLong endpointRef = INSTANCE.MIDIGetDestination(new NativeLong(dest));
@@ -141,10 +141,10 @@ logger.fine("devices: " + props.deviceMap.size());
                 Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
 
                 if (!props.deviceMap.containsKey(uid)) {
-logger.fine("add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
+logger.log(Level.DEBUG, "add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
                     props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
                 }
-        }
+            }
 logger.fine("devices: " + props.deviceMap.size());
 
         // TODO i wanna do add call back to default destination like
@@ -155,15 +155,15 @@ logger.fine("devices: " + props.deviceMap.size());
         int osStatus = INSTANCE.MIDIDestinationCreate(props.client.getMidiClientRef(),
                 nameId, this::readProc, null, outDest);
         if (osStatus != 0) {
-            logger.warning("MIDIDestinationCreate: " + osStatus);
+            logger.log(Level.WARNING, "MIDIDestinationCreate: " + osStatus);
         } else {
             NativeLong endpointRef = outDest.getValue();
             MidiEndpoint ep = new MidiEndpoint(endpointRef);
             Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
-logger.fine("add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
+logger.log(Level.DEBUG, "add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
             props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
         }
-logger.fine("devices: " + props.deviceMap.size());
+logger.log(Level.DEBUG, "devices: " + props.deviceMap.size());
     }
 
     private void readProc(MIDIPacketList pktlist, Pointer readProcRefCon, Pointer srcConnRefCon) {
@@ -189,7 +189,7 @@ logger.fine("readProc for CoreMIDI Loopback Destination called");
                 }
                 break;
             default:
-                logger.fine("Got " + message.getMessageID());
+                logger.log(Level.DEBUG, "Got " + message.getMessageID());
                 break;
             }
         }

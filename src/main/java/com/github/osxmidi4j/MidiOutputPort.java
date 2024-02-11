@@ -15,9 +15,11 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
-import java.util.logging.Logger;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.github.osxmidi4j.midiservices.MIDIPacketList;
@@ -29,7 +31,7 @@ import com.sun.jna.NativeLong;
  */
 public class MidiOutputPort {
 
-    private static final Logger logger = Logger.getLogger(MidiOutputPort.class.getName());
+    private static final Logger logger = System.getLogger(MidiOutputPort.class.getName());
 
     private final NativeLong midiPortRef;
 
@@ -42,7 +44,7 @@ public class MidiOutputPort {
 
     public void send(MidiEndpoint dest, MIDIPacketList packets) throws CoreMidiException {
         int midiSend = CoreMidiLibrary.INSTANCE.MIDISend(midiPortRef, dest.endpointRef(), packets.getPointer());
-logger.fine("send: " + midiSend);
+logger.log(Level.DEBUG, "send: " + midiSend);
         if (midiSend != 0) {
             throw new CoreMidiException(midiSend);
         }
