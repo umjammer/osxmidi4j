@@ -45,6 +45,8 @@ public class CoreMidiDeviceProvider extends MidiDeviceProvider {
 
     public static final String DEVICE_NAME_PREFIX = "CoreMidi - ";
 
+    public static final String DEFAULT_DESTINATION = "CoreMIDI Loopback Destination";
+
     private static final int DEVICE_MAP_SIZE = 20;
 
     private static final class MidiProperties {
@@ -81,7 +83,7 @@ logger.log(Level.DEBUG, "midi client: " + props.client);
         }
     }
 
-    final boolean isMac() {
+    static boolean isMac() {
         String os = System.getProperty("os.name").toLowerCase();
         return (os.contains("mac"));
     }
@@ -122,6 +124,7 @@ logger.log(Level.DEBUG, "midi client: " + props.client);
     }
 
     private void buildDeviceMap() throws CoreMidiException {
+        // 1. source
         int count = INSTANCE.MIDIGetNumberOfSources().intValue();
         for (int source = 0; source < count; source++) {
             NativeLong endpointRef = INSTANCE.MIDIGetSource(new NativeLong(source));
@@ -134,26 +137,31 @@ logger.log(Level.DEBUG, "add CoreMidiSources: " + ep.getStringProperty(CoreMidiL
             }
         }
 logger.log(Level.DEBUG, "devices: " + props.deviceMap.size());
+        // 2. destination
         count = INSTANCE.MIDIGetNumberOfDestinations().intValue();
         for (int dest = 0; dest < count; dest++) {
             NativeLong endpointRef = INSTANCE.MIDIGetDestination(new NativeLong(dest));
             MidiEndpoint ep = new MidiEndpoint(endpointRef);
+            try {
                 Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
 
                 if (!props.deviceMap.containsKey(uid)) {
 logger.log(Level.DEBUG, "add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
                     props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
                 }
+            } catch (CoreMidiException e) {
+logger.log(Level.WARNING, e.toString());
             }
-logger.fine("devices: " + props.deviceMap.size());
-
-        // TODO i wanna do add call back to default destination like
+        }
+logger.log(Level.DEBUG, "devices: " + props.deviceMap.size());
+        // 3. loop-back
+        // TODO i wanna add call back to default destination like
         //  MIDISetCallbackToDestination(ep, readProc);
         // https://stackoverflow.com/a/68162041
         NativeLongByReference outDest = new NativeLongByReference();
-        ID nameId = Foundation.cfString("CoreMIDI Loopback Destination");
+        ID nameId = Foundation.cfString(DEFAULT_DESTINATION);
         int osStatus = INSTANCE.MIDIDestinationCreate(props.client.getMidiClientRef(),
-                nameId, this::readProc, null, outDest);
+                nameId, CoreMidiDeviceProvider::readProc, null, outDest);
         if (osStatus != 0) {
             logger.log(Level.WARNING, "MIDIDestinationCreate: " + osStatus);
         } else {
@@ -166,8 +174,9 @@ logger.log(Level.DEBUG, "add CoreMidiDestination: " + ep.getStringProperty(CoreM
 logger.log(Level.DEBUG, "devices: " + props.deviceMap.size());
     }
 
-    private void readProc(MIDIPacketList pktlist, Pointer readProcRefCon, Pointer srcConnRefCon) {
-logger.fine("readProc for CoreMIDI Loopback Destination called");
+    /** for loop-back */
+    private static void readProc(MIDIPacketList pktlist, Pointer readProcRefCon, Pointer srcConnRefCon) {
+logger.log(Level.DEBUG, "readProc for " + DEFAULT_DESTINATION + " called");
         props.deviceMap.values().forEach(device -> {
             if (device instanceof CoreMidiSource) {
                 ((CoreMidiSource) device).readProc(pktlist, readProcRefCon, srcConnRefCon);

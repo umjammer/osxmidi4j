@@ -59,7 +59,7 @@ public record MidiEndpoint(NativeLong endpointRef) {
         }
     }
 
-    private ID getPropertyId(String propertyName) {
+    private static ID getPropertyId(String propertyName) {
         Pointer p = CoreMidiLibrary.JNA_NATIVE_LIB.getGlobalVariableAddress(propertyName);
         return ID.fromLong(p.getNativeLong(0).longValue());
     }

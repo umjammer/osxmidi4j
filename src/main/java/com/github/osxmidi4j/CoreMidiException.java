@@ -18,7 +18,6 @@
 
 package com.github.osxmidi4j;
 
-
 import java.io.Serial;
 
 

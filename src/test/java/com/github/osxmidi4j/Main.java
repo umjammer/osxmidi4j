@@ -37,10 +37,10 @@ public final class Main {
             Info[] deviceInfo = midiDeviceProvider.getDeviceInfo();
             Debug.println(midiDeviceProvider.getClass().getName() + ": " + deviceInfo.length);
 
-            for (final Info info : deviceInfo) {
-                logger.info(info.getName());
+            for (Info info : deviceInfo) {
+                System.err.println(info.getName());
             }
-            logger.info("---------------\n");
+            System.err.println("---------------");
         }
     }
 }

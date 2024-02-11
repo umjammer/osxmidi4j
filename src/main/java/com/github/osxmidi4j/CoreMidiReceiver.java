@@ -66,14 +66,12 @@ public class CoreMidiReceiver implements Receiver {
         }
         try {
             // Don't deal with message directly because of bugs
-            if (message instanceof ShortMessage) {
-                ShortMessage m = (ShortMessage) message;
+            if (message instanceof ShortMessage m) {
                 MIDIPacketList midiPacketList = MIDIPacketList.Factory.newInstance();
                 midiPacketList.add(new MIDIPacket(m));
                 CoreMidiDeviceProvider.getOutputPort().send(dest, midiPacketList);
-            } else if (message instanceof SysexMessage) {
-                SysexMessage m = (SysexMessage) message;
 logger.log(Level.DEBUG, "send short message: " + m + ", to MidiDestination: " + dest);
+            } else if (message instanceof SysexMessage m) {
                 ByteArrayInputStream is;
                 if (m.getStatus() == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
                     is = new ByteArrayInputStream(m.getData());

@@ -24,6 +24,7 @@ import java.util.List;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Structure;
 
+
 public class MIDIIOErrorNotification extends Structure {
     // CHECKSTYLE:OFF Visibility
 

@@ -15,26 +15,18 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class CoreMidiDeviceProviderMacOsXTest {
 
-    @BeforeEach
-    public void setUp() throws Exception {
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-    }
+class CoreMidiDeviceProviderMacOsXTest {
 
     @Test
-    public void testConstructor() throws CoreMidiException {
+    void testConstructor() throws CoreMidiException {
         CoreMidiDeviceProvider tested = new CoreMidiDeviceProvider();
         assertNotNull(tested.getClient());
         assertNotNull(tested.getOutput());
