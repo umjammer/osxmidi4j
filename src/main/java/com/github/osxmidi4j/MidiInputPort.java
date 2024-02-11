@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import com.sun.jna.NativeLong;
@@ -36,15 +37,15 @@ public class MidiInputPort {
         this.name = name;
     }
 
-    public void connectSource(final MidiEndpoint source) throws CoreMidiException {
-        int midiPortConnectSource = INSTANCE.MIDIPortConnectSource(midiPortRef, source.getEndpointRef(), null);
+    public void connectSource(MidiEndpoint source) throws CoreMidiException {
+        int midiPortConnectSource = INSTANCE.MIDIPortConnectSource(midiPortRef, source.endpointRef(), null);
         if (midiPortConnectSource != 0) {
             throw new CoreMidiException(midiPortConnectSource);
         }
     }
 
-    public void disconnectSource(final MidiEndpoint source) throws CoreMidiException {
-        int midiPortDisconnectSource = INSTANCE.MIDIPortDisconnectSource(midiPortRef, source.getEndpointRef());
+    public void disconnectSource(MidiEndpoint source) throws CoreMidiException {
+        int midiPortDisconnectSource = INSTANCE.MIDIPortDisconnectSource(midiPortRef, source.endpointRef());
         if (midiPortDisconnectSource != 0) {
             throw new CoreMidiException(midiPortDisconnectSource);
         }

@@ -15,11 +15,14 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiDevice.Info;
@@ -31,44 +34,35 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Transmitter;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import vavi.util.Debug;
+import vavi.util.StringUtil;
 
+import static com.github.osxmidi4j.CoreMidiDeviceProvider.DEFAULT_DESTINATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-public class SendMidiMacOsXTest {
+class SendMidiMacOsXTest {
 
-    private final Logger logger = Logger.getLogger(SendMidiMacOsXTest.class.getName());
-    public static final int MIN_NUM_PORTS = 2;
-
-    @BeforeEach
-    public void setUp() throws Exception {
-        failureMessage = null;
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-    }
+    static final int MIN_NUM_PORTS = 3; // no name in, out + loop-back
 
     @Test
-    public void testSendMidi() throws MidiUnavailableException,
+    @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*") // TODO why ga env midi doesn't have in/out???
+    void testSendMidi() throws MidiUnavailableException,
             InvalidMidiDataException {
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         int portCount = 0;
 int i = 0;
         for (Info info : midiDeviceInfos) {
-logger.info("info[" + i++ + "]: " + info + ", " + (info instanceof CoreMidiDeviceInfo) + " --------");
+Debug.println("info[" + i++ + "]: " + info + ", " + (info instanceof CoreMidiDeviceInfo) + ", " + info.getClass().getName() + " --------");
             if (info instanceof CoreMidiDeviceInfo) {
                 MidiDevice midiDevice = MidiSystem.getMidiDevice(info);
-logger.info("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
-                if (midiDevice.getMaxReceivers() == -1) {
+Debug.println("device: " + midiDevice + ", " + midiDevice.getMaxTransmitters());
+                if (midiDevice.getMaxTransmitters() == 0) {
                     portCount++;
                     assertEquals(CoreMidiDestination.class, midiDevice.getClass());
                     midiDevice.open();
@@ -78,7 +72,7 @@ logger.info("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
                     receiver.send(shortMessage, 0);
 
                     SysexMessage sysexMessage = new SysexMessage();
-                    final byte[] buf = new byte[] {
+                    byte[] buf = new byte[] {
                                     (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40,
                                     0x01, 0x33, 0x02, 0x0D, (byte) 0xF7 };
                     sysexMessage.setMessage(buf, buf.length);
@@ -87,24 +81,24 @@ logger.info("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
                 }
             }
         }
-        assertTrue(portCount >= MIN_NUM_PORTS);
+Debug.println("portCount: " + portCount + ", expected " + MIN_NUM_PORTS);
+        assertTrue(portCount >= MIN_NUM_PORTS, "actual: " + portCount + ", expected: " + MIN_NUM_PORTS);
     }
 
-    private String failureMessage = null;
-    private int arrayIndex = 0;
-
     @Test
-    public void testReceiveMidi() throws MidiUnavailableException,
+    void testReceiveMidi() throws MidiUnavailableException,
             InvalidMidiDataException, InterruptedException {
 
         int portCount = 0;
-        final ArrayList<MidiMessage> list = new ArrayList<>();
+
+        ArrayList<MidiMessage> list = new ArrayList<>();
+
         ShortMessage shortMessage = new ShortMessage();
         shortMessage.setMessage(ShortMessage.CONTROL_CHANGE, 0, 0);
         list.add(shortMessage);
 
         SysexMessage sysexMessage = new SysexMessage();
-        final byte[] buf = new byte[] {
+        byte[] buf = new byte[] {
                         (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x01, 0x33,
                         0x02, 0x0D, (byte) 0xF7 };
         sysexMessage.setMessage(buf, buf.length);
@@ -113,82 +107,90 @@ logger.info("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
 int i = 0;
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         for (Info info : midiDeviceInfos) {
-logger.info("info[" + i++ + "]: " + info + ", " + (info instanceof CoreMidiDeviceInfo) + " --------");
+Debug.println(" -------- info[" + i++ + "]: " + info + ", CoreMIDI?: " + (info instanceof CoreMidiDeviceInfo) + ", " + info.getClass().getName() + " --------");
             if (info instanceof CoreMidiDeviceInfo) {
                 MidiDevice midiDevice = MidiSystem.getMidiDevice(info);
-logger.info("device: " + midiDevice + ", " + midiDevice.getMaxTransmitters());
-                if (midiDevice.getMaxTransmitters() == -1) {
+Debug.println("device: " + midiDevice + ", " + midiDevice.getMaxReceivers());
+                if (midiDevice.getMaxReceivers() == 0) {
                     portCount++;
                     assertEquals(CoreMidiSource.class, midiDevice.getClass());
 
                     midiDevice.open();
 
+Debug.println("device name: " + midiDevice.getDeviceInfo().getName());
+
+                    AtomicReference<String> failureMessage = new AtomicReference<>();
+                    AtomicInteger arrayIndex = new AtomicInteger();
+
                     Transmitter transmitter = midiDevice.getTransmitter();
                     transmitter.setReceiver(new Receiver() {
                         @Override
-                        public void send(MidiMessage arg0, long arg1) {
+                        public void send(MidiMessage message, long delta) {
                             try {
-                                logger.info("Received midi message!");
-                                MidiMessage msg = list.get(arrayIndex);
-                                arrayIndex++;
-                                assertEquals(msg.getClass(), arg0.getClass());
-                                assertEquals(msg.getStatus(), arg0.getStatus());
-                                assertEquals(msg.getLength(), arg0.getLength());
+Debug.println("Received midi message!: " + message);
+                                if (message instanceof SysexMessage sysexMessage) {
+                                    byte[] d = sysexMessage.getData();
+                                    if (!Arrays.equals(d, 0, d.length, buf, 1, buf.length)) {
+Debug.println("midi sysex message not by us:\n" + StringUtil.getDump(d));
+                                        return;
+                                    }
+                                }
+                                MidiMessage msg = list.get(arrayIndex.getAndIncrement());
+                                assertEquals(msg.getClass(), message.getClass());
+                                assertEquals(msg.getStatus(), message.getStatus());
+                                assertEquals(msg.getLength(), message.getLength());
                             } catch (Exception e) {
-                                failureMessage = e.getMessage();
-                                logger.log(Level.WARNING, e.getMessage(), e);
+                                failureMessage.set(e.getMessage());
+Debug.println(e);
                             }
                         }
 
-                        @Override
-                        public void close() {
-                        }
+                        @Override public void close() {}
                     });
 
                     // default destination doesn't loopback, does it?
-                    sendMidiMessagesToPort("CoreMIDI Loopback Destination", list);
+                    sendMidiMessagesToPort(DEFAULT_DESTINATION, list);
                     Thread.sleep(1000);
                     midiDevice.close();
 
-                    assertEquals(list.size(), arrayIndex);
-                    assertNull(failureMessage);
-                    break;
+Debug.println("received: " + list.size());
+                    assertEquals(list.size(), arrayIndex.get());
+                    assertNull(failureMessage.get());
                 }
             }
         }
+Debug.println("portCount: " + portCount);
     }
 
     /**
-     * @param portName i made loopback enabled device named "CoreMIDI Loopback Destination"
+     * @param portName i made loopback enabled device named {@link CoreMidiDeviceProvider#DEFAULT_DESTINATION}
      */
-    void sendMidiMessagesToPort(String portName, List<MidiMessage> messages)
-            throws MidiUnavailableException {
-        logger.info("Sending messages to port " + portName);
-        failureMessage = null;
-        arrayIndex = 0;
+    static void sendMidiMessagesToPort(String portName, List<MidiMessage> messages) throws MidiUnavailableException {
+Debug.println("Sending messages to port " + portName);
         Info[] midiDeviceInfos = MidiSystem.getMidiDeviceInfo();
         for (Info info : midiDeviceInfos) {
-            if (!info.getName().contains(portName)) {
-logger.finer("port name is not the same: " + info.getName());
-                continue;
-            }
-logger.finer("selected port name: " + portName);
+Debug.println(" selected port name: " + portName);
             if (info instanceof CoreMidiDeviceInfo) {
                 MidiDevice midiDevice = MidiSystem.getMidiDevice(info);
-                if (midiDevice.getMaxReceivers() != -1) {
+                if (midiDevice.getMaxReceivers() == 0) {
+                    continue;
+                }
+                if (!midiDevice.getDeviceInfo().getName().contains(portName)) {
+Debug.println(" port name is not the same: " + info.getName());
                     continue;
                 }
 
                 midiDevice.open();
-logger.info("device: " + midiDevice);
+Debug.println(" device: " + midiDevice);
                 Receiver receiver = midiDevice.getReceiver();
-logger.info("receiver: " + receiver);
+Debug.println(" receiver: " + receiver);
                 int index = 0;
                 for (MidiMessage midiMessage : messages) {
-                    logger.info("Sending message " + index++);
+Debug.println(" Sending message " + index++);
                     receiver.send(midiMessage, 0);
                 }
                 midiDevice.close();
+Debug.println(" Sending count " + index);
             }
         }
     }

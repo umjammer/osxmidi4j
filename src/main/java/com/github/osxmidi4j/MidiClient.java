@@ -18,7 +18,8 @@
 
 package com.github.osxmidi4j;
 
-import java.util.logging.Logger;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 
 import org.rococoa.Foundation;
 import org.rococoa.ID;
@@ -33,7 +34,7 @@ import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
 
 public class MidiClient {
 
-    private static final Logger logger = Logger.getLogger(MidiClient.class.getName());
+    private static final Logger logger = System.getLogger(MidiClient.class.getName());
 
     private final NativeLong midiClientRef;
 
@@ -45,7 +46,7 @@ public class MidiClient {
         if (osStatus != 0) {
             throw new CoreMidiException(osStatus);
         }
-logger.fine("MidiClientRef: " + name + ", " + clientRef.getValue().longValue());
+logger.log(Level.DEBUG, "MidiClientRef: " + name + ", " + clientRef.getValue().longValue());
         midiClientRef = clientRef.getValue();
     }
 
@@ -56,7 +57,7 @@ logger.fine("MidiClientRef: " + name + ", " + clientRef.getValue().longValue());
         if (osStatus != 0) {
             throw new CoreMidiException(osStatus);
         }
-logger.fine("MidiOutputPort: " + name + ", " + portRef.getValue());
+logger.log(Level.DEBUG, "MidiOutputPort: " + name + ", " + portRef.getValue());
         return new MidiOutputPort(portRef.getValue(), name);
     }
 
@@ -67,7 +68,7 @@ logger.fine("MidiOutputPort: " + name + ", " + portRef.getValue());
         if (osStatus != 0) {
             throw new CoreMidiException(osStatus);
         }
-logger.fine("MidiInputPort: " + name + ", " + portRef.getValue());
+logger.log(Level.DEBUG, "MidiInputPort: " + name + ", " + portRef.getValue());
         return new MidiInputPort(portRef.getValue(), name);
     }
 

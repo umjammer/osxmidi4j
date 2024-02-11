@@ -15,22 +15,25 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import java.util.logging.Logger;
+import java.lang.System.Logger;
 
 
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 
+
 public class MIDIPacketList extends Structure {
 
-    private static final Logger logger = Logger.getLogger(MIDIPacketList.class.getName());
+    private static final Logger logger = System.getLogger(MIDIPacketList.class.getName());
 
     public static final int NUM_PACKETS_SIZE = 4;
     private static final int LIST_SIZE = NUM_PACKETS_SIZE
@@ -39,6 +42,7 @@ public class MIDIPacketList extends Structure {
     private Pointer currPacketPtr;
 
     // CHECKSTYLE:OFF Visibility
+
     public MIDIPacket packet;
     public int numPackets;
 
@@ -49,7 +53,7 @@ public class MIDIPacketList extends Structure {
         }
 
         public static MIDIPacketList newInstance() {
-            final MIDIPacketList midiPacketList = new MIDIPacketList();
+            MIDIPacketList midiPacketList = new MIDIPacketList();
             midiPacketList.currPacketPtr = CoreMidiLibrary.INSTANCE.MIDIPacketListInit(midiPacketList.getPointer());
             midiPacketList.packet = new MIDIPacket(midiPacketList.currPacketPtr);
             return midiPacketList;
@@ -60,7 +64,7 @@ public class MIDIPacketList extends Structure {
         super();
     }
 
-    public MIDIPacketList(final Pointer p) {
+    public MIDIPacketList(Pointer p) {
         super(p);
     }
 
@@ -68,10 +72,10 @@ public class MIDIPacketList extends Structure {
         return Arrays.asList("numPackets", "packet");
     }
 
-    public void add(final MIDIPacket midiPacket) {
-        final int length = midiPacket.getLength();
-        final byte[] data = midiPacket.getData();
-        final long timeStamp = midiPacket.getTimeStamp();
+    public void add(MIDIPacket midiPacket) {
+        int length = midiPacket.getLength();
+        byte[] data = midiPacket.getData();
+        long timeStamp = midiPacket.getTimeStamp();
         currPacketPtr = CoreMidiLibrary.INSTANCE.MIDIPacketListAdd(getPointer(),
                         new NativeLong(LIST_SIZE), currPacketPtr, timeStamp,
                         new NativeLong(length), data);
@@ -92,8 +96,8 @@ public class MIDIPacketList extends Structure {
         private MIDIPacket currPacket;
 
         public PacketListIterator() {
-            final Pointer expected = MIDIPacketList.this.getPointer().share(NUM_PACKETS_SIZE);
-            final Pointer actual = MIDIPacketList.this.packet.getPointer();
+            Pointer expected = MIDIPacketList.this.getPointer().share(NUM_PACKETS_SIZE);
+            Pointer actual = MIDIPacketList.this.packet.getPointer();
             if (actual.equals(expected)) {
                 currPacket = MIDIPacketList.this.packet;
             } else {
@@ -109,15 +113,15 @@ public class MIDIPacketList extends Structure {
 
         @Override
         public MIDIPacket next() {
-            final MIDIPacket temp = currPacket;
+            MIDIPacket temp = currPacket;
             index++;
             if (hasNext()) {
 if (currPacket.length > currPacket.data.length) {
  // TODO ad-hoc
- logger.warning("packet: len: " + currPacket.length + ", data: " + currPacket.data.length);
+ logger.log(Level.WARNING, "packet: len: " + currPacket.length + ", data: " + currPacket.data.length);
  currPacket.length = (short) currPacket.data.length;
 }
-                final Pointer newPointer = currPacket.getPointer().share(currPacket.getLength());
+                Pointer newPointer = currPacket.getPointer().share(currPacket.getLength());
                 currPacket = new MIDIPacket(newPointer);
                 currPacket.read();
             }

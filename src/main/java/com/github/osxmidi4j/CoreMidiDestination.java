@@ -15,9 +15,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
-import java.util.ArrayList;
+import java.lang.System.Logger.Level;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -28,8 +29,7 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
 
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
-import java.util.logging.Logger;
-
+import java.lang.System.Logger;
 
 
 /**
@@ -37,61 +37,61 @@ import java.util.logging.Logger;
  */
 public class CoreMidiDestination implements MidiDevice {
 
-    private static final Logger logger = Logger.getLogger(CoreMidiDestination.class.getName());
+    private static final Logger logger = System.getLogger(CoreMidiDestination.class.getName());
     private boolean destOpen = false;
 
     private final CoreMidiDeviceInfo info;
     private final MidiEndpoint dest;
     private final Set<CoreMidiReceiver> receivers;
 
-    public CoreMidiDestination(final MidiEndpoint ep, final Integer uid, final String namePrefix) {
+    public CoreMidiDestination(MidiEndpoint ep, Integer uid, String namePrefix) {
         dest = ep;
         String name = "", vendor = "", description = "", version = "";
         try {
             name = namePrefix
                             + " "
                             + dest.getStringProperty(CoreMidiLibrary.kMIDIPropertyName);
-        } catch (final CoreMidiException e) {
-            logger.warning(CoreMidiLibrary.kMIDIPropertyName);
-            logger.warning(e.getMessage());
+        } catch (CoreMidiException e) {
+            logger.log(Level.WARNING, CoreMidiLibrary.kMIDIPropertyName);
+            logger.log(Level.WARNING, e.getMessage());
         }
         try {
             version = Integer.toString(dest.getProperty(CoreMidiLibrary.kMIDIPropertyDriverVersion));
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             if (e.getErrorCode() == -10835) {
                 // Some ports don't have driver versions
-                logger.fine(name + " kMIDIPropertyDriverVersion not found");
+                logger.log(Level.DEBUG, name + " kMIDIPropertyDriverVersion not found");
             } else {
-                logger.warning(name + " " + CoreMidiLibrary.kMIDIPropertyDriverVersion);
-                logger.warning(e.getMessage());
+                logger.log(Level.WARNING, name + " " + CoreMidiLibrary.kMIDIPropertyDriverVersion);
+                logger.log(Level.WARNING, e.getMessage());
             }
         }
         try {
             vendor = dest.getStringProperty(CoreMidiLibrary.kMIDIPropertyManufacturer);
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             if (e.getErrorCode() == -10835) {
-                logger.fine(name + " kMIDIPropertyManufacturer not found");
+                logger.log(Level.DEBUG, name + " kMIDIPropertyManufacturer not found");
             } else {
-                logger.warning(name + " " + CoreMidiLibrary.kMIDIPropertyManufacturer);
-                logger.warning(e.getMessage());
+                logger.log(Level.WARNING, name + " " + CoreMidiLibrary.kMIDIPropertyManufacturer);
+                logger.log(Level.WARNING, e.getMessage());
             }
         }
         try {
             // Should I use something else for the description?
             description = dest.getStringProperty(CoreMidiLibrary.kMIDIPropertyModel);
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             if (e.getErrorCode() == -10835) {
-                logger.fine(name + " kMIDIPropertyModel not found");
+                logger.log(Level.DEBUG, name + " kMIDIPropertyModel not found");
             } else {
-                logger.warning(name + " " + CoreMidiLibrary.kMIDIPropertyModel);
-                logger.warning(e.getMessage());
+                logger.log(Level.WARNING, name + " " + CoreMidiLibrary.kMIDIPropertyModel);
+                logger.log(Level.WARNING, e.getMessage());
             }
         }
         info = new CoreMidiDeviceInfo(name, vendor, description, version, uid);
         receivers = Collections.newSetFromMap(new ConcurrentHashMap<>());
     }
 
-    public CoreMidiDestination(final MidiEndpoint ep, final Integer uid) {
+    public CoreMidiDestination(MidiEndpoint ep, Integer uid) {
         this(ep, uid, CoreMidiDeviceProvider.DEVICE_NAME_PREFIX);
     }
 
@@ -141,7 +141,7 @@ public class CoreMidiDestination implements MidiDevice {
 
     @Override
     public List<Receiver> getReceivers() {
-        return Collections.unmodifiableList(new ArrayList<Receiver>(receivers));
+        return List.copyOf(receivers);
     }
 
     @Override

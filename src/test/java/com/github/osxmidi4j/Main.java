@@ -15,14 +15,14 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import java.util.ServiceLoader;
-
 import javax.sound.midi.MidiDevice.Info;
 import javax.sound.midi.spi.MidiDeviceProvider;
 
-import java.util.logging.Logger;
+import vavi.util.Debug;
 
 
 public final class Main {
@@ -32,16 +32,15 @@ public final class Main {
      * MidiDeviceProvider
      */
     public static void main(String[] args) {
-        Logger logger = Logger.getLogger(Main.class.getName());
         ServiceLoader<MidiDeviceProvider> serviceLoader = ServiceLoader.load(MidiDeviceProvider.class);
         for (MidiDeviceProvider midiDeviceProvider : serviceLoader) {
             Info[] deviceInfo = midiDeviceProvider.getDeviceInfo();
-            logger.info(midiDeviceProvider.getClass().getName() + ": " + deviceInfo.length);
+            Debug.println(midiDeviceProvider.getClass().getName() + ": " + deviceInfo.length);
 
-            for (final Info info : deviceInfo) {
-                logger.info(info.getName());
+            for (Info info : deviceInfo) {
+                System.err.println(info.getName());
             }
-            logger.info("---------------\n");
+            System.err.println("---------------");
         }
     }
 }

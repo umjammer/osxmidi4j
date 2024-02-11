@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
 import com.sun.jna.Pointer;
@@ -23,8 +24,10 @@ import com.sun.jna.Structure;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class MIDIObjectAddRemoveNotification extends Structure {
     // CHECKSTYLE:OFF Visibility
+
     public int messageID;
     public int messageSize;
     public Pointer parent;
@@ -43,9 +46,9 @@ public class MIDIObjectAddRemoveNotification extends Structure {
                 "parentType", "child", "childType");
     }
 
-    public MIDIObjectAddRemoveNotification(final int messageID,
-            final int messageSize, final Pointer parent, final int parentType,
-            final Pointer child, final int childType) {
+    public MIDIObjectAddRemoveNotification(int messageID,
+                                           int messageSize, Pointer parent, int parentType,
+                                           Pointer child, int childType) {
         super();
         this.messageID = messageID;
         this.messageSize = messageSize;

@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
 import java.nio.IntBuffer;
@@ -30,6 +31,7 @@ import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
 import com.sun.jna.ptr.NativeLongByReference;
+
 
 /**
  * JNA Wrapper for library <b>CoreMidi Framework</b><br>

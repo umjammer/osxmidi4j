@@ -15,21 +15,19 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
-
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.github.osxmidi4j.midiservices.CoreMidiLibrary;
 import com.github.osxmidi4j.midiservices.MIDIPacket;
@@ -37,14 +35,15 @@ import com.github.osxmidi4j.midiservices.MIDIPacketList;
 import com.github.osxmidi4j.midiservices.MIDISysexSendRequest;
 import com.sun.jna.Pointer;
 
+
 public class CoreMidiReceiver implements Receiver {
 
-    private static final Logger logger = Logger.getLogger(CoreMidiReceiver.class.getName());
+    private static final Logger logger = System.getLogger(CoreMidiReceiver.class.getName());
 
     private final MidiEndpoint dest;
     private final Set<Pointer> sendRequests = new HashSet<>();
 
-    CoreMidiReceiver(final MidiEndpoint ep) {
+    CoreMidiReceiver(MidiEndpoint ep) {
         dest = ep;
     }
 
@@ -52,13 +51,13 @@ public class CoreMidiReceiver implements Receiver {
         // Not needed.
     }
 
-    public void send(final MidiMessage message, final long timeStamp) {
+    public void send(MidiMessage message, long timeStamp) {
         try {
             if (dest.getProperty(CoreMidiLibrary.kMIDIPropertyOffline) == 1) {
-                logger.info("midi device is offline");
+                logger.log(Level.INFO, "midi device is offline");
                 return;
             }
-        } catch (final CoreMidiException e) {
+        } catch (CoreMidiException e) {
             // -10835 kMIDIUnknownProperty Attempt to query a property not set on the object.
             // https://de.osdn.net/projects/miditrail/ticket/32542
             if (e.getErrorCode() != -10835) {
@@ -67,14 +66,12 @@ public class CoreMidiReceiver implements Receiver {
         }
         try {
             // Don't deal with message directly because of bugs
-            if (message instanceof ShortMessage) {
-                ShortMessage m = (ShortMessage) message;
+            if (message instanceof ShortMessage m) {
                 MIDIPacketList midiPacketList = MIDIPacketList.Factory.newInstance();
                 midiPacketList.add(new MIDIPacket(m));
                 CoreMidiDeviceProvider.getOutputPort().send(dest, midiPacketList);
-logger.fine("send short message: " + m + ", to MidiDestination: " + dest);
-            } else if (message instanceof SysexMessage) {
-                SysexMessage m = (SysexMessage) message;
+logger.log(Level.DEBUG, "send short message: " + m + ", to MidiDestination: " + dest);
+            } else if (message instanceof SysexMessage m) {
                 ByteArrayInputStream is;
                 if (m.getStatus() == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
                     is = new ByteArrayInputStream(m.getData());
@@ -92,16 +89,16 @@ logger.fine("send short message: " + m + ", to MidiDestination: " + dest);
                         throw new CoreMidiException(midiSendSysex);
                     }
                     sendRequests.add(req.getPointer());
-logger.fine("add sendRequests sysex message: " + m + ", queue: " + sendRequests.size() + " to MidiDestination: " + dest);
+logger.log(Level.DEBUG, "add sendRequests sysex message: " + m + ", queue: " + sendRequests.size() + " to MidiDestination: " + dest);
                 }
             }
-        } catch (final CoreMidiException | IOException e) {
+        } catch (CoreMidiException | IOException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
         }
     }
 
     private void completed(Pointer request) {
         sendRequests.remove(request);
-logger.fine("Completed sendRequests: " + request + ", queue: " + sendRequests.size());
+logger.log(Level.DEBUG, "Completed sendRequests: " + request + ", queue: " + sendRequests.size());
     }
 }

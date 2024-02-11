@@ -18,8 +18,12 @@
 
 package com.github.osxmidi4j;
 
+import java.io.Serial;
+
+
 public class CoreMidiException extends Exception {
 
+    @Serial
     private static final long serialVersionUID = 1082826830458488415L;
 
     private int errorCode;
@@ -28,20 +32,20 @@ public class CoreMidiException extends Exception {
         super();
     }
 
-    public CoreMidiException(final int errorCode) {
+    public CoreMidiException(int errorCode) {
         super("Midi Error: " + errorCode);
         this.errorCode = errorCode;
     }
 
-    public CoreMidiException(final String arg0, final Throwable arg1) {
+    public CoreMidiException(String arg0, Throwable arg1) {
         super(arg0, arg1);
     }
 
-    public CoreMidiException(final String arg0) {
+    public CoreMidiException(String arg0) {
         super(arg0);
     }
 
-    public CoreMidiException(final Throwable arg0) {
+    public CoreMidiException(Throwable arg0) {
         super(arg0);
     }
 

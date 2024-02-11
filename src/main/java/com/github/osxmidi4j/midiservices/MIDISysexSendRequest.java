@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
 import java.util.Arrays;
@@ -27,10 +28,12 @@ import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 
+
 public class MIDISysexSendRequest extends Structure {
     private static final int RESERVED_SIZE = 3;
 
     // CHECKSTYLE:OFF Visibility
+
     public NativeLong destination;
     public Pointer data;
     public int bytesToSend;
@@ -41,14 +44,11 @@ public class MIDISysexSendRequest extends Structure {
 
     // CHECKSTYLE:ON
 
-    public static MIDISysexSendRequest newInstance(final MidiEndpoint dest,
-            final MIDIPacket midiPacket, final MIDICompletionProc completionProc) {
-        final MIDISysexSendRequest newInstance =
-                Structure
-                        .newInstance(MIDISysexSendRequest.class);
-        newInstance.destination = dest.getEndpointRef();
-        final int length = midiPacket.getData().length;
-        final byte[] buf = midiPacket.getData();
+    public static MIDISysexSendRequest newInstance(MidiEndpoint dest, MIDIPacket midiPacket, MIDICompletionProc completionProc) {
+        MIDISysexSendRequest newInstance = Structure.newInstance(MIDISysexSendRequest.class);
+        newInstance.destination = dest.endpointRef();
+        int length = midiPacket.getData().length;
+        byte[] buf = midiPacket.getData();
         newInstance.data = new Memory(length);
         for (int i = 0; i < length; i++) {
             newInstance.data.setByte(i, buf[i]);

@@ -20,8 +20,6 @@ package com.github.osxmidi4j;
 
 import java.nio.IntBuffer;
 
-import java.util.logging.Logger;
-
 import org.rococoa.Foundation;
 import org.rococoa.ID;
 import org.rococoa.IDByReference;
@@ -36,14 +34,9 @@ import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
 /**
  * Represents real pointer to MidiSource, MidiDestination.
  */
-public class MidiEndpoint {
+public record MidiEndpoint(NativeLong endpointRef) {
 
     private static final int BUFFER_SIZE = 256;
-    private final NativeLong endpointRef;
-
-    public MidiEndpoint(NativeLong endpointRef) {
-        this.endpointRef = endpointRef;
-    }
 
     public int getProperty(String kMidiPropertyOffline) throws CoreMidiException {
         ID propertyId = getPropertyId(kMidiPropertyOffline);
@@ -66,13 +59,9 @@ public class MidiEndpoint {
         }
     }
 
-    private ID getPropertyId(String propertyName) {
+    private static ID getPropertyId(String propertyName) {
         Pointer p = CoreMidiLibrary.JNA_NATIVE_LIB.getGlobalVariableAddress(propertyName);
         return ID.fromLong(p.getNativeLong(0).longValue());
-    }
-
-    public NativeLong getEndpointRef() {
-        return endpointRef;
     }
 
     @Override

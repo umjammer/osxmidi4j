@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
 import java.util.Arrays;
@@ -25,8 +26,11 @@ import org.rococoa.ID;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 
+
 public class MIDIObjectPropertyChangeNotification extends Structure {
+
     // CHECKSTYLE:OFF Visibility
+
     public int messageID;
     public int messageSize;
     public Pointer object;
@@ -44,9 +48,9 @@ public class MIDIObjectPropertyChangeNotification extends Structure {
                 "objectType", "propertyName");
     }
 
-    public MIDIObjectPropertyChangeNotification(final int messageID,
-            final int messageSize, final Pointer object, final int objectType,
-            final ID propertyName) {
+    public MIDIObjectPropertyChangeNotification(int messageID,
+            int messageSize, Pointer object, int objectType,
+            ID propertyName) {
         super();
         this.messageID = messageID;
         this.messageSize = messageSize;

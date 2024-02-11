@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
+
 package com.github.osxmidi4j.midiservices;
 
 import java.util.Arrays;
@@ -22,9 +23,11 @@ import java.util.List;
 
 import com.sun.jna.Structure;
 
+
 public class MIDINotification extends Structure {
 
     // CHECKSTYLE:OFF Visibility
+
     public int messageID;
     public int messageSize;
 
@@ -37,7 +40,7 @@ public class MIDINotification extends Structure {
         return Arrays.asList("messageID", "messageSize");
     }
 
-    public MIDINotification(final int messageID, final int messageSize) {
+    public MIDINotification(int messageID, int messageSize) {
         this.messageID = messageID;
         this.messageSize = messageSize;
     }
@@ -46,7 +49,7 @@ public class MIDINotification extends Structure {
         return messageID;
     }
 
-    public void setMessageID(final int messageID) {
+    public void setMessageID(int messageID) {
         this.messageID = messageID;
     }
 
@@ -54,7 +57,7 @@ public class MIDINotification extends Structure {
         return messageSize;
     }
 
-    public void setMessageSize(final int messageSize) {
+    public void setMessageSize(int messageSize) {
         this.messageSize = messageSize;
     }
 }
