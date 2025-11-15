@@ -41,6 +41,10 @@ import org.rococoa.ID;
 import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
 
 
+/**
+ * system property
+ * <li>com.github.osxmidi4j.loopback ... create default loop back device or not, default {@code ture}</li>
+ */
 public class CoreMidiDeviceProvider extends MidiDeviceProvider {
 
     public static final String DEVICE_NAME_PREFIX = "CoreMidi - ";
@@ -154,22 +158,26 @@ logger.log(Level.WARNING, e.toString());
             }
         }
 logger.log(Level.DEBUG, "devices: " + props.deviceMap.size());
-        // 3. loop-back
-        // TODO i wanna add call back to default destination like
-        //  MIDISetCallbackToDestination(ep, readProc);
-        // https://stackoverflow.com/a/68162041
-        NativeLongByReference outDest = new NativeLongByReference();
-        ID nameId = Foundation.cfString(DEFAULT_DESTINATION);
-        int osStatus = INSTANCE.MIDIDestinationCreate(props.client.getMidiClientRef(),
-                nameId, CoreMidiDeviceProvider::readProc, null, outDest);
-        if (osStatus != 0) {
-            logger.log(Level.WARNING, "MIDIDestinationCreate: " + osStatus);
-        } else {
-            NativeLong endpointRef = outDest.getValue();
-            MidiEndpoint ep = new MidiEndpoint(endpointRef);
-            Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
+
+        if (Boolean.parseBoolean(System.getProperty("com.github.osxmidi4j.loopback", "false"))) {
+
+            // 3. loop-back
+            // TODO i wanna add call back to default destination like
+            //  MIDISetCallbackToDestination(ep, readProc);
+            // https://stackoverflow.com/a/68162041
+            NativeLongByReference outDest = new NativeLongByReference();
+            ID nameId = Foundation.cfString(DEFAULT_DESTINATION);
+            int osStatus = INSTANCE.MIDIDestinationCreate(props.client.getMidiClientRef(),
+                    nameId, CoreMidiDeviceProvider::readProc, null, outDest);
+            if (osStatus != 0) {
+                logger.log(Level.WARNING, "MIDIDestinationCreate: " + osStatus);
+            } else {
+                NativeLong endpointRef = outDest.getValue();
+                MidiEndpoint ep = new MidiEndpoint(endpointRef);
+                Integer uid = ep.getProperty(CoreMidiLibrary.kMIDIPropertyUniqueID);
 logger.log(Level.DEBUG, "add CoreMidiDestination: " + ep.getStringProperty(CoreMidiLibrary.kMIDIPropertyName));
-            props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
+                props.deviceMap.put(uid, new CoreMidiDestination(ep, uid));
+            }
         }
 logger.log(Level.DEBUG, "devices: " + props.deviceMap.size());
     }

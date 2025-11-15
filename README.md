@@ -27,3 +27,4 @@ tested with MacOS 14.3.1
 ## TODO
 
  * move CoreMIDI part into rococoa?
+ * ~~system property to control creating a loopback device~~
