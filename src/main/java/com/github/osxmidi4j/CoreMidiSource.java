@@ -66,7 +66,7 @@ public class CoreMidiSource implements MidiDevice {
                             + source.getStringProperty(CoreMidiLibrary.kMIDIPropertyName);
         } catch (CoreMidiException e) {
             logger.log(Level.WARNING, CoreMidiLibrary.kMIDIPropertyName);
-            logger.log(Level.WARNING, e.getMessage());
+            logger.log(Level.WARNING, "name: " + e.getMessage());
         }
         try {
             version = Integer.toString(source.getProperty(CoreMidiLibrary.kMIDIPropertyDriverVersion));
@@ -76,7 +76,7 @@ public class CoreMidiSource implements MidiDevice {
                 logger.log(Level.DEBUG, name + " kMIDIPropertyDriverVersion not found");
             } else {
                 logger.log(Level.WARNING, name + " " + CoreMidiLibrary.kMIDIPropertyDriverVersion);
-                logger.log(Level.DEBUG, e.getMessage());
+                logger.log(Level.DEBUG, "version: " + e.getMessage());
             }
         }
         try {
@@ -86,15 +86,20 @@ public class CoreMidiSource implements MidiDevice {
                 logger.log(Level.DEBUG, name + " kMIDIPropertyManufacturer not found");
             } else {
                 logger.log(Level.DEBUG, name + " " + CoreMidiLibrary.kMIDIPropertyManufacturer);
-                logger.log(Level.DEBUG, e.getMessage());
+                logger.log(Level.DEBUG, "vendor: " + e.getMessage());
             }
         }
         try {
             // Should I use something else for the description?
             description = source.getStringProperty(CoreMidiLibrary.kMIDIPropertyModel);
         } catch (CoreMidiException e) {
-            logger.log(Level.WARNING, name + " " + CoreMidiLibrary.kMIDIPropertyModel);
-            logger.log(Level.WARNING, e.getMessage());
+            if (e.getErrorCode() == -10835) {
+                // Some ports don't have driver model
+                logger.log(Level.DEBUG, name + " kMIDIPropertyModel not found");
+            } else {
+                logger.log(Level.WARNING, name + " " + CoreMidiLibrary.kMIDIPropertyModel);
+                logger.log(Level.DEBUG, "model: " + e.getMessage());
+            }
         }
         info = new CoreMidiDeviceInfo(name, vendor, description, version, uid);
     }

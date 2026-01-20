@@ -31,6 +31,8 @@ import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Transmitter;
 
 import com.github.osxmidi4j.midiservices.MIDIPacket;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import vavi.util.Debug;
@@ -42,6 +44,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 
 class SendMidiTest {
+
+    @BeforeAll
+    static void setup() {
+        // create loopback device
+        System.setProperty("com.github.osxmidi4j.loopback", "true");
+    }
 
     @Test
     @DisplayName("Big sysex")

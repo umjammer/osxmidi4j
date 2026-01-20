@@ -99,7 +99,7 @@ public class CoreMidiLibraryMacOsXTest {
         }
     }
 
-    void printPropertyName(NativeLong ref) {
+    static void printPropertyName(NativeLong ref) {
         Pointer kMIDIPropertyName = CoreMidiLibrary.JNA_NATIVE_LIB.getGlobalVariableAddress("kMIDIPropertyName");
         long longValue = kMIDIPropertyName.getNativeLong(0).longValue();
         ID fromLong = ID.fromLong(longValue);

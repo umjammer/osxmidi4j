@@ -34,6 +34,7 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Transmitter;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import vavi.util.Debug;
@@ -49,6 +50,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SendMidiMacOsXTest {
 
     static final int MIN_NUM_PORTS = 3; // no name in, out + loop-back
+
+    @BeforeAll
+    static void setup() {
+        // create loopback device
+        System.setProperty("com.github.osxmidi4j.loopback", "true");
+    }
 
     @Test
     @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*") // TODO why ga env midi doesn't have in/out???
