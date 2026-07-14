@@ -18,6 +18,7 @@
 
 package com.github.osxmidi4j;
 
+import com.github.osxmidi4j.midiservices.CoreMidiLibrary.MIDIReadProc;
 import com.sun.jna.NativeLong;
 
 import static com.github.osxmidi4j.midiservices.CoreMidiLibrary.INSTANCE;
@@ -32,9 +33,19 @@ public class MidiInputPort {
 
     private final String name;
 
-    public MidiInputPort(NativeLong midiPortRef, String name) {
+    /**
+     * CoreMidi calls this proc for the whole life of the native port, but JNA only holds callbacks
+     * weakly: once no java code references it, its native trampoline is freed and CoreMidi ends up
+     * calling a dangling pointer. Holding it here binds its life to the native port's life.
+     *
+     * @see MidiClient#inputPortCreate
+     */
+    private final MIDIReadProc readProc;
+
+    MidiInputPort(NativeLong midiPortRef, String name, MIDIReadProc readProc) {
         this.midiPortRef = midiPortRef;
         this.name = name;
+        this.readProc = readProc;
     }
 
     public void connectSource(MidiEndpoint source) throws CoreMidiException {
@@ -48,6 +59,14 @@ public class MidiInputPort {
         int midiPortDisconnectSource = INSTANCE.MIDIPortDisconnectSource(midiPortRef, source.endpointRef());
         if (midiPortDisconnectSource != 0) {
             throw new CoreMidiException(midiPortDisconnectSource);
+        }
+    }
+
+    /** Disposes the native port. Use {@link MidiClient#inputPortDispose(MidiInputPort)}, which also unregisters it. */
+    void dispose() throws CoreMidiException {
+        int midiPortDispose = INSTANCE.MIDIPortDispose(midiPortRef);
+        if (midiPortDispose != 0) {
+            throw new CoreMidiException(midiPortDispose);
         }
     }
 

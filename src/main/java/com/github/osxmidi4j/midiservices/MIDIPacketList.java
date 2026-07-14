@@ -54,6 +54,10 @@ public class MIDIPacketList extends Structure {
 
         public static MIDIPacketList newInstance() {
             MIDIPacketList midiPacketList = new MIDIPacketList();
+            // the packets are laid out in the native memory by MIDIPacketListInit/MIDIPacketListAdd, which is
+            // authoritative. writing the java fields over it (as jna does when this is passed as an argument)
+            // would replace the packets we just added by an empty one.
+            midiPacketList.setAutoWrite(false);
             midiPacketList.currPacketPtr = CoreMidiLibrary.INSTANCE.MIDIPacketListInit(midiPacketList.getPointer());
             midiPacketList.packet = new MIDIPacket(midiPacketList.currPacketPtr);
             return midiPacketList;
