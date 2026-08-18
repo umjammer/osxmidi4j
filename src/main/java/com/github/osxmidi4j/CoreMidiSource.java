@@ -118,8 +118,16 @@ public class CoreMidiSource implements MidiDevice {
             try {
                 input.disconnectSource(source);
             } catch (CoreMidiException e) {
+                // the endpoint may be gone already, the port must be disposed anyway
+                logger.log(Level.DEBUG, "disconnectSource: " + e.getMessage());
+            }
+            try {
+                // disposing the native port is what releases our read proc, it must not outlive this device
+                CoreMidiDeviceProvider.getMIDIClient().inputPortDispose(input);
+            } catch (CoreMidiException e) {
                 logger.log(Level.WARNING, e.getMessage(), e);
             }
+            input = null;
         }
     }
 

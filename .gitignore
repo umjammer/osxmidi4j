@@ -6,3 +6,4 @@ target/
 .ruleset
 .externalToolBuilders/
 tmp/
+local.properties

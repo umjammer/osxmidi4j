@@ -1,7 +1,7 @@
 [![Release](https://jitpack.io/v/umjammer/osxmidi4j.svg)](https://jitpack.io/#umjammer/osxmidi4j)
 [![Java CI](https://github.com/umjammer/osxmidi4j/actions/workflows/maven.yml/badge.svg)](https://github.com/umjammer/osxmidi4j/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/umjammer/osxmidi4j/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/umjammer/osxmidi4j/actions/workflows/codeql-analysis.yml)
-![Java](https://img.shields.io/badge/Java-17-b07219)
+![Java](https://img.shields.io/badge/Java-25-b07219)
 
 # osxmidi4j
 
@@ -22,9 +22,16 @@ tested with MacOS 15.4.1
 
 ## Usage
 
+### system property
+
+* `com.github.osxmidi4j.loopback` ... create default loop back device or not, default `ture`
+
 ## References
 
  * https://github.com/DerekCook/CoreMidi4J
+ * https://github.com/M-HT/websynth_d-77
+   * `$ ./d77_coredrv -w ../datafile/dswebWDM.dat`
+   * `javax.sound.midi.Receiver` ... `#WebSynth D-77` or `#CoreMidi -  WebSynth D-77` 
 
 ## TODO
 
